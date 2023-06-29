@@ -11,7 +11,6 @@ interface IUser extends Document {
   phoneNumber?: string;
   birthday: string;
   username: string;
-  phoneNumber?: string;
   photo?: string;
   passwordChangedAt?: Date;
   passwordResetToken?: string;
@@ -33,11 +32,11 @@ const userSchema = new Schema<IUser>(
     birthday: { type: String },
     username: { type: String },
     photo: { type: String },
-    botId: { type: Types.ObjectId },
+    botId: [{ type: mongoose.Schema.Types.ObjectId }],
     registrationTokens: [{ type: String }],
-    passwordChangedAt: Date,
-    passwordResetToken: String,
-    passwordResetExpires: Date,
+    passwordChangedAt: { type: Date },
+    passwordResetToken: { type: String },
+    passwordResetExpires: { type: Date },
   },
   { timestamps: true }
 );
@@ -45,7 +44,7 @@ const userSchema = new Schema<IUser>(
 userSchema.pre("save", function (next) {
   if (!this.isModified("password") || this.isNew) return next();
 
-  this.passwordChangedAt = Date.now() - 1000;
+  this.passwordChangedAt = new Date(Date.now() - 1000);
   next();
 });
 
