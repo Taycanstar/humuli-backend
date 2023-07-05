@@ -214,4 +214,17 @@ export const userController = {
       res.status(500).send({ message: "Failed to verify phone number" });
     }
   },
+  resendCode: async (req: Request, res: Response) => {
+    const { phoneNumber } = req.body;
+    try {
+      await sendVerificationCode(phoneNumber);
+      res.status(200).send({ message: "Verification code resent." });
+    } catch (error) {
+      console.error(
+        "Failed to resend verification code",
+        JSON.stringify(error, null, 2)
+      );
+      res.status(500).send({ message: "Failed to resend verification code" });
+    }
+  },
 };

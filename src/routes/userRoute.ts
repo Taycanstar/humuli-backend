@@ -8,6 +8,7 @@ router.get("/check-user-exists", userController.checkUserExists);
 router.post("/resend-confirmation", userController.resendConfirmation);
 router.put("/add-personal-info/:id", userController.addPersonalInfo);
 router.post("/send-code", userController.sendCode);
+router.post("/resend-code", userController.resendCode);
 router.post("/confirm-phone-number/:id", userController.confirmPhoneNumber);
 
 export default router;

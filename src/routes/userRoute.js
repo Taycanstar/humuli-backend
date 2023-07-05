@@ -12,5 +12,6 @@ router.get("/check-user-exists", userController_1.userController.checkUserExists
 router.post("/resend-confirmation", userController_1.userController.resendConfirmation);
 router.put("/add-personal-info/:id", userController_1.userController.addPersonalInfo);
 router.post("/send-code", userController_1.userController.sendCode);
+router.post("/resend-code", userController_1.userController.resendCode);
 router.post("/confirm-phone-number/:id", userController_1.userController.confirmPhoneNumber);
 exports.default = router;

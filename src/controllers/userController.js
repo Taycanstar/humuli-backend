@@ -185,4 +185,15 @@ exports.userController = {
             res.status(500).send({ message: "Failed to verify phone number" });
         }
     }),
+    resendCode: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        const { phoneNumber } = req.body;
+        try {
+            yield (0, txt_1.sendVerificationCode)(phoneNumber);
+            res.status(200).send({ message: "Verification code resent." });
+        }
+        catch (error) {
+            console.error("Failed to resend verification code", JSON.stringify(error, null, 2));
+            res.status(500).send({ message: "Failed to resend verification code" });
+        }
+    }),
 };
