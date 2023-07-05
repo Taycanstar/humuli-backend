@@ -8,12 +8,15 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const userRoute_1 = __importDefault(require("./src/routes/userRoute"));
+const path = require("path");
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const port = Number(process.env.PORT) || 8000;
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
 const uri = process.env.DB_URI;
+const d = process.env.POSTMARK_API_TOKEN;
+console.log(d, "tk");
 //init routes
 app.use("/u", userRoute_1.default);
 // Connect to MongoDB

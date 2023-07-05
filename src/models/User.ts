@@ -2,28 +2,28 @@ import mongoose, { Document, Schema, Types } from "mongoose";
 import crypto from "crypto";
 
 interface IUser extends Document {
-  firstName: string;
-  lastName: string;
+  firstName?: string;
+  lastName?: string;
   organizationName?: string;
   email: string;
   password: string;
   gender?: string;
   phoneNumber?: string;
-  birthday: string;
-  username: string;
+  birthday?: string;
+  username?: string;
   photo?: string;
   passwordChangedAt?: Date;
   passwordResetToken?: string;
   passwordResetExpires?: Date;
-  registrationTokens: string[];
-  botId: Types.ObjectId[];
+  registrationTokens?: string[];
+  botId?: Types.ObjectId[];
   createPasswordResetToken(): string;
 }
 
 const userSchema = new Schema<IUser>(
   {
-    firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
+    firstName: { type: String },
+    lastName: { type: String },
     organizationName: { type: String },
     email: { type: String, required: true },
     password: { type: String, required: true },
