@@ -12,6 +12,7 @@ interface IUser extends Document {
   birthday?: string;
   username?: string;
   photo?: string;
+  registrationStep?: string;
   passwordChangedAt?: Date;
   passwordResetToken?: string;
   passwordResetExpires?: Date;
@@ -29,6 +30,7 @@ const userSchema = new Schema<IUser>(
     password: { type: String, required: true },
     gender: { type: String },
     phoneNumber: { type: String },
+    registrationStep: { type: String },
     birthday: { type: String },
     username: { type: String },
     photo: { type: String },

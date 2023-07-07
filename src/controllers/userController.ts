@@ -80,7 +80,11 @@ export const userController = {
     }
 
     // Create a new user document in the User collection
-    const user = new User({ email, password: hashedPassword });
+    const user = new User({
+      email,
+      password: hashedPassword,
+      regisrationStep: "emailVerified",
+    });
 
     try {
       await user.save();
@@ -167,6 +171,7 @@ export const userController = {
           lastName,
           birthday,
           organizationName,
+          registrationStep: "personalInfoVerified",
         },
         { new: true }
       );
@@ -199,7 +204,7 @@ export const userController = {
         // save the phone number to the user document
         const user = await User.findByIdAndUpdate(
           req.params.id,
-          { phoneNumber },
+          { phoneNumber, regisrationStep: "phoneNumberVerified" },
           { new: true }
         );
         res.status(200).send({ message: "Phone number verified.", user });

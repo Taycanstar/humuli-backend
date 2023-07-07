@@ -76,7 +76,11 @@ exports.userController = {
                 .send({ message: "Invalid confirmation token, email, or password" });
         }
         // Create a new user document in the User collection
-        const user = new User_1.default({ email, password: hashedPassword });
+        const user = new User_1.default({
+            email,
+            password: hashedPassword,
+            regisrationStep: "emailVerified",
+        });
         try {
             yield user.save();
         }
@@ -149,6 +153,7 @@ exports.userController = {
                 lastName,
                 birthday,
                 organizationName,
+                registrationStep: "personalInfoVerified",
             }, { new: true });
             res.status(201).send({ message: "Personal details updated." });
         }
@@ -173,7 +178,7 @@ exports.userController = {
             const response = yield (0, txt_1.verifyNumber)(phoneNumber, otpCode);
             if (response.status === "approved") {
                 // save the phone number to the user document
-                const user = yield User_1.default.findByIdAndUpdate(req.params.id, { phoneNumber }, { new: true });
+                const user = yield User_1.default.findByIdAndUpdate(req.params.id, { phoneNumber, regisrationStep: "phoneNumberVerified" }, { new: true });
                 res.status(200).send({ message: "Phone number verified.", user });
             }
             else {

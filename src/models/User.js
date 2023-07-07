@@ -36,6 +36,7 @@ const userSchema = new mongoose_1.Schema({
     password: { type: String, required: true },
     gender: { type: String },
     phoneNumber: { type: String },
+    registrationStep: { type: String },
     birthday: { type: String },
     username: { type: String },
     photo: { type: String },
