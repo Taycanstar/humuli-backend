@@ -65,8 +65,7 @@ export const userController = {
     const { email, password, username, registrationToken } = req.body;
     try {
       let user =
-        (await User.findOne({ email: email })) ||
-        (await User.findOne({ username: username }));
+        (await User.findOne({ email })) || (await User.findOne({ username }));
       if (!user) {
         return res.status(400).json({ error: "Invalid credentials" });
       }
@@ -118,7 +117,7 @@ export const userController = {
 
     // Create a new user document in the User collection
     const user = new User({
-      email,
+      email: email.toLowerCase(),
       password: hashedPassword,
       regisrationStep: "emailVerified",
     });
@@ -241,9 +240,13 @@ export const userController = {
         // save the phone number to the user document
         const user = await User.findByIdAndUpdate(
           req.params.id,
-          { phoneNumber, regisrationStep: "phoneNumberVerified" },
+          {
+            phoneNumber,
+            registrationStep: "phoneNumberVerified",
+          },
           { new: true }
         );
+
         res.status(200).send({ message: "Phone number verified.", user });
       } else {
         res.status(400).send({ message: "Invalid verification code." });

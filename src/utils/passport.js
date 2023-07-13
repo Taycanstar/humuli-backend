@@ -25,7 +25,7 @@ passport_1.default.use("oauth2", new passport_oauth2_1.Strategy({
     authorizationURL: "http://localhost:8000/auth/authorize",
     tokenURL: "http://localhost:8000/auth/token",
     clientID: clientID,
-    clientSecret: process.env.CLIENTx,
+    clientSecret: process.env.CLIENT,
     callbackURL: "http://localhost:8000/auth/oauth2/callback",
 }, function (accessToken, refreshToken, profile, done) {
     return __awaiter(this, void 0, void 0, function* () {

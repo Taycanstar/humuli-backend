@@ -9,6 +9,7 @@ const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const userRoute_1 = __importDefault(require("./src/routes/userRoute"));
 const apiRoute_1 = __importDefault(require("./src/routes/apiRoute"));
+const path = require("path");
 const authRoute_1 = __importDefault(require("./src/routes/authRoute"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
@@ -20,8 +21,19 @@ const d = process.env.POSTMARK_API_TOKEN;
 //init routes
 app.use("/u", userRoute_1.default);
 app.use("/api", apiRoute_1.default);
-app.use("/auth", authRoute_1.default);
+app.post("/auth", authRoute_1.default);
 // Connect to MongoDB
-mongoose_1.default.connect(uri).then(() => {
+mongoose_1.default
+    .connect(uri)
+    .then(() => {
     console.log("Connected to MongoDB");
-}).catch;
+})
+    .catch((error) => {
+    console.error("Error connecting to MongoDB", error);
+});
+app.get("/", (req, res) => {
+    res.send("Hello, world!");
+});
+app.listen(port, () => {
+    console.log(`Server is running at http://localhost:${port}`);
+});

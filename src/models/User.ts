@@ -13,7 +13,6 @@ interface IUser extends Document {
   username?: string;
   photo?: string;
   registrationStep?: string;
-
   registrationTokens?: string[];
   botId?: Types.ObjectId[];
 }
@@ -31,6 +30,7 @@ const userSchema = new Schema<IUser>(
     username: { type: String },
     photo: { type: String },
     botId: [{ type: mongoose.Schema.Types.ObjectId }],
+    registrationStep: { type: String },
     registrationTokens: [{ type: String }],
   },
   { timestamps: true }

@@ -64,8 +64,7 @@ exports.userController = {
     login: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const { email, password, username, registrationToken } = req.body;
         try {
-            let user = (yield User_1.default.findOne({ email: email })) ||
-                (yield User_1.default.findOne({ username: username }));
+            let user = (yield User_1.default.findOne({ email })) || (yield User_1.default.findOne({ username }));
             if (!user) {
                 return res.status(400).json({ error: "Invalid credentials" });
             }
@@ -108,7 +107,7 @@ exports.userController = {
         }
         // Create a new user document in the User collection
         const user = new User_1.default({
-            email,
+            email: email.toLowerCase(),
             password: hashedPassword,
             regisrationStep: "emailVerified",
         });
@@ -209,7 +208,10 @@ exports.userController = {
             const response = yield (0, txt_1.verifyNumber)(phoneNumber, otpCode);
             if (response.status === "approved") {
                 // save the phone number to the user document
-                const user = yield User_1.default.findByIdAndUpdate(req.params.id, { phoneNumber, regisrationStep: "phoneNumberVerified" }, { new: true });
+                const user = yield User_1.default.findByIdAndUpdate(req.params.id, {
+                    phoneNumber,
+                    registrationStep: "phoneNumberVerified",
+                }, { new: true });
                 res.status(200).send({ message: "Phone number verified.", user });
             }
             else {

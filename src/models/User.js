@@ -36,6 +36,7 @@ const userSchema = new mongoose_1.Schema({
     username: { type: String },
     photo: { type: String },
     botId: [{ type: mongoose_1.default.Schema.Types.ObjectId }],
+    registrationStep: { type: String },
     registrationTokens: [{ type: String }],
 }, { timestamps: true });
 const User = mongoose_1.default.model("User", userSchema);
