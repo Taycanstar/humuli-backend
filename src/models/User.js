@@ -22,12 +22,8 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
-const crypto_1 = __importDefault(require("crypto"));
 const userSchema = new mongoose_1.Schema({
     firstName: { type: String },
     lastName: { type: String },
@@ -36,31 +32,11 @@ const userSchema = new mongoose_1.Schema({
     password: { type: String, required: true },
     gender: { type: String },
     phoneNumber: { type: String },
-    registrationStep: { type: String },
     birthday: { type: String },
     username: { type: String },
     photo: { type: String },
     botId: [{ type: mongoose_1.default.Schema.Types.ObjectId }],
     registrationTokens: [{ type: String }],
-    passwordChangedAt: { type: Date },
-    passwordResetToken: { type: String },
-    passwordResetExpires: { type: Date },
 }, { timestamps: true });
-userSchema.pre("save", function (next) {
-    if (!this.isModified("password") || this.isNew)
-        return next();
-    this.passwordChangedAt = new Date(Date.now() - 1000);
-    next();
-});
-userSchema.methods.createPasswordResetToken = function () {
-    const resetToken = crypto_1.default.randomBytes(4).toString("hex");
-    this.passwordResetToken = crypto_1.default
-        .createHash("sha256")
-        .update(resetToken)
-        .digest("hex");
-    console.log({ resetToken }, this.passwordResetToken);
-    this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
-    return resetToken;
-};
 const User = mongoose_1.default.model("User", userSchema);
 exports.default = User;

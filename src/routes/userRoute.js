@@ -7,6 +7,7 @@ const express_1 = __importDefault(require("express"));
 const userController_1 = require("../controllers/userController");
 const router = express_1.default.Router();
 router.post("/register", userController_1.userController.register);
+router.post("/login", userController_1.userController.login);
 router.post("/confirm-user", userController_1.userController.confirmUser);
 router.get("/check-user-exists", userController_1.userController.checkUserExists);
 router.post("/resend-confirmation", userController_1.userController.resendConfirmation);

@@ -8,6 +8,7 @@ import sendEmail from "../utils/email";
 import dotenv from "dotenv";
 import path from "path";
 import { sendVerificationCode, verifyNumber } from "../utils/txt";
+import { v4 as uuidv4 } from "uuid";
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
@@ -38,7 +39,7 @@ export const userController = {
       await confirmation.save();
 
       // Send the confirmation email
-      const emailBody = `To continue setting up your Qubemind account, please click the following link to confirm your email: ${process.env.FRONTEND_URL}/confirm?token=${confirmationToken}&email=${email}&hashedPassword=${hashedPassword}`;
+      const emailBody = `To continue setting up your Qubemind account, please click the following link to confirm your email: ${process.env.FRONTEND_URL}/auth/onboarding/details?token=${confirmationToken}&email=${email}&hashedPassword=${hashedPassword}`;
 
       await sendEmail({
         email: email,
@@ -57,6 +58,42 @@ export const userController = {
         JSON.stringify(error, null, 2)
       );
       res.status(500).send({ message: "Failed to send confirmation email" });
+    }
+  },
+
+  login: async (req: Request, res: Response) => {
+    const { email, password, username, registrationToken } = req.body;
+    try {
+      let user =
+        (await User.findOne({ email: email })) ||
+        (await User.findOne({ username: username }));
+      if (!user) {
+        return res.status(400).json({ error: "Invalid credentials" });
+      }
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        return res.status(400).json({ error: "Invalid credentials" });
+      }
+      if (registrationToken) {
+        if (
+          !user.registrationTokens ||
+          !user.registrationTokens.includes(registrationToken)
+        ) {
+          await User.findByIdAndUpdate(user._id, {
+            registrationTokens: user.registrationTokens
+              ? [...user.registrationTokens, registrationToken]
+              : [registrationToken],
+          });
+        }
+      }
+
+      const token = jwt.sign({ _id: user._id }, process.env.SECRET as string, {
+        expiresIn: "1h",
+      });
+
+      return res.status(200).json({ token });
+    } catch (error) {
+      console.log(error);
     }
   },
 
@@ -138,7 +175,7 @@ export const userController = {
     await confirmation.save();
 
     // Send the confirmation email
-    const emailBody = `To continue setting up your Qubemind account, please click the following link to confirm your email: ${process.env.FRONTEND_URL}/confirm?token=${confirmationToken}&email=${email}&hashedPassword=${hashedPassword}`;
+    const emailBody = `To continue setting up your Qubemind account, please click the following link to confirm your email: ${process.env.FRONTEND_URL}/onboarding/details?token=${confirmationToken}&email=${email}&hashedPassword=${hashedPassword}`;
 
     try {
       await sendEmail({

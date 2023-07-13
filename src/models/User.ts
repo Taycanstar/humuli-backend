@@ -13,12 +13,9 @@ interface IUser extends Document {
   username?: string;
   photo?: string;
   registrationStep?: string;
-  passwordChangedAt?: Date;
-  passwordResetToken?: string;
-  passwordResetExpires?: Date;
+
   registrationTokens?: string[];
   botId?: Types.ObjectId[];
-  createPasswordResetToken(): string;
 }
 
 const userSchema = new Schema<IUser>(
@@ -30,40 +27,14 @@ const userSchema = new Schema<IUser>(
     password: { type: String, required: true },
     gender: { type: String },
     phoneNumber: { type: String },
-    registrationStep: { type: String },
     birthday: { type: String },
     username: { type: String },
     photo: { type: String },
     botId: [{ type: mongoose.Schema.Types.ObjectId }],
     registrationTokens: [{ type: String }],
-    passwordChangedAt: { type: Date },
-    passwordResetToken: { type: String },
-    passwordResetExpires: { type: Date },
   },
   { timestamps: true }
 );
-
-userSchema.pre("save", function (next) {
-  if (!this.isModified("password") || this.isNew) return next();
-
-  this.passwordChangedAt = new Date(Date.now() - 1000);
-  next();
-});
-
-userSchema.methods.createPasswordResetToken = function (): string {
-  const resetToken = crypto.randomBytes(4).toString("hex");
-
-  this.passwordResetToken = crypto
-    .createHash("sha256")
-    .update(resetToken)
-    .digest("hex");
-
-  console.log({ resetToken }, this.passwordResetToken);
-
-  this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
-
-  return resetToken;
-};
 
 const User = mongoose.model<IUser>("User", userSchema);
 

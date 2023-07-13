@@ -3,6 +3,7 @@ import { userController } from "../controllers/userController";
 const router = express.Router();
 
 router.post("/register", userController.register);
+router.post("/login", userController.login);
 router.post("/confirm-user", userController.confirmUser);
 router.get("/check-user-exists", userController.checkUserExists);
 router.post("/resend-confirmation", userController.resendConfirmation);
