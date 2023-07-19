@@ -229,8 +229,13 @@ export const userController = {
   },
 
   addPersonalInfo: async (req: Request, res: Response) => {
-    const { firstName, lastName, birthday, organizationName } = req.body;
+    const { firstName, lastName, birthday, organizationName, username } =
+      req.body;
     try {
+      let userFound = await User.findOne({ username });
+      if (userFound) {
+        return res.status(400).json({ error: "Username is not available" });
+      }
       const user = await User.findByIdAndUpdate(
         req.params.id,
         {
@@ -239,6 +244,7 @@ export const userController = {
           birthday,
           organizationName,
           registrationStep: "personalInfoVerified",
+          username,
         },
         { new: true }
       );

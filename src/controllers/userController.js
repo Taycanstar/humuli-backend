@@ -203,14 +203,19 @@ exports.userController = {
         }
     }),
     addPersonalInfo: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-        const { firstName, lastName, birthday, organizationName } = req.body;
+        const { firstName, lastName, birthday, organizationName, username } = req.body;
         try {
+            let userFound = yield User_1.default.findOne({ username });
+            if (userFound) {
+                return res.status(400).json({ error: "Username is not available" });
+            }
             const user = yield User_1.default.findByIdAndUpdate(req.params.id, {
                 firstName,
                 lastName,
                 birthday,
                 organizationName,
                 registrationStep: "personalInfoVerified",
+                username,
             }, { new: true });
             console.log(user, "success");
             res.status(201).send({ message: "Personal details updated." });
