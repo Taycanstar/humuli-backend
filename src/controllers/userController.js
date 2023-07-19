@@ -91,6 +91,33 @@ exports.userController = {
             console.log(error);
         }
     }),
+    fakeLogin: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        const { email, password, username, registrationToken } = req.body;
+        try {
+            let user = (yield User_1.default.findOne({ email })) || (yield User_1.default.findOne({ username }));
+            if (!user) {
+                return res.status(404).json({ message: "User not found" });
+            }
+            const isMatch = yield bcrypt.compare(password, user.password);
+            if (!isMatch) {
+                return res.status(400).json({ message: "Incorrect Password" });
+            }
+            if (registrationToken) {
+                if (!user.registrationTokens ||
+                    !user.registrationTokens.includes(registrationToken)) {
+                    yield User_1.default.findByIdAndUpdate(user._id, {
+                        registrationTokens: user.registrationTokens
+                            ? [...user.registrationTokens, registrationToken]
+                            : [registrationToken],
+                    });
+                }
+            }
+            return res.status(200).json({ message: "success", user });
+        }
+        catch (error) {
+            console.log(error);
+        }
+    }),
     confirmUser: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const { confirmationToken, email, hashedPassword } = req.body;
         // Retrieve the confirmation document from the Confirmation collection
@@ -185,10 +212,12 @@ exports.userController = {
                 organizationName,
                 registrationStep: "personalInfoVerified",
             }, { new: true });
+            console.log(user, "success");
             res.status(201).send({ message: "Personal details updated." });
         }
-        catch (_a) {
+        catch (error) {
             res.status(500).send({ message: "Failed to add personal information" });
+            console.log(error);
         }
     }),
     sendCode: (req, res) => __awaiter(void 0, void 0, void 0, function* () {

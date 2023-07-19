@@ -96,6 +96,37 @@ export const userController = {
     }
   },
 
+  fakeLogin: async (req: Request, res: Response) => {
+    const { email, password, username, registrationToken } = req.body;
+    try {
+      let user =
+        (await User.findOne({ email })) || (await User.findOne({ username }));
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        return res.status(400).json({ message: "Incorrect Password" });
+      }
+      if (registrationToken) {
+        if (
+          !user.registrationTokens ||
+          !user.registrationTokens.includes(registrationToken)
+        ) {
+          await User.findByIdAndUpdate(user._id, {
+            registrationTokens: user.registrationTokens
+              ? [...user.registrationTokens, registrationToken]
+              : [registrationToken],
+          });
+        }
+      }
+
+      return res.status(200).json({ message: "success", user });
+    } catch (error) {
+      console.log(error);
+    }
+  },
+
   confirmUser: async (req: Request, res: Response) => {
     const { confirmationToken, email, hashedPassword } = req.body;
 
@@ -211,10 +242,11 @@ export const userController = {
         },
         { new: true }
       );
-
+      console.log(user, "success");
       res.status(201).send({ message: "Personal details updated." });
-    } catch {
+    } catch (error) {
       res.status(500).send({ message: "Failed to add personal information" });
+      console.log(error);
     }
   },
 
