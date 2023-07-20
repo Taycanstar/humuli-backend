@@ -30,7 +30,7 @@ exports.userController = {
             // Check if user already exists
             let user = yield User_1.default.findOne({ email });
             if (user) {
-                return res.status(400).json({ error: "User already exists" });
+                return res.status(400).json({ message: "User already exists" });
             }
             // Generate a confirmation token
             const confirmationToken = crypto_1.default.randomBytes(20).toString("hex");
@@ -266,6 +266,104 @@ exports.userController = {
         catch (error) {
             console.error("Failed to resend verification code", JSON.stringify(error, null, 2));
             res.status(500).send({ message: "Failed to resend verification code" });
+        }
+    }),
+    forgotPassword: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        const { email } = req.body;
+        try {
+            let user = yield User_1.default.findOne({ email });
+            if (!user) {
+                return res.status(400).json({ message: "User not found" });
+            }
+            // Generate a one-time code
+            const otp = Math.floor(100000 + Math.random() * 900000); // generates a six digit number
+            const confirmation = new Confirmation_1.default({
+                email,
+                confirmationToken: otp,
+            });
+            yield confirmation.save();
+            // Send the OTP email
+            const emailBody = `Your Qubemind one-time password (OTP) is: <b>${otp}</b>`;
+            yield (0, email_1.default)({
+                email: email,
+                subject: "Qubemind - Reset your password",
+                message: emailBody,
+            });
+            res.status(200).send({ message: "OTP sent. Please check your email." });
+            console.log("success");
+        }
+        catch (error) {
+            console.error("Failed to send OTP", JSON.stringify(error, null, 2));
+            res.status(500).send({ message: "Failed to send OTP" });
+        }
+    }),
+    confirmOtp: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        const { confirmationToken, email } = req.body;
+        // Retrieve the confirmation document from the Confirmation collection
+        const confirmation = yield Confirmation_1.default.findOne({ confirmationToken });
+        if (!confirmation) {
+            return res.status(404).send({ message: "Confirmation token not found" });
+        }
+        // Check if the email and hashedPassword match the confirmation document
+        if (confirmation.email !== email) {
+            return res
+                .status(401)
+                .send({ message: "Invalid confirmation token, email, or password" });
+        }
+        let user = yield User_1.default.findOne({ email });
+        // Delete the confirmation document from the Confirmation collection
+        yield Confirmation_1.default.deleteOne({ confirmationToken });
+        res.status(200).send({ message: "Otp confirmed", user });
+    }),
+    resendOtp: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        const { email } = req.body;
+        // Check if user already exists
+        let user = yield User_1.default.findOne({ email });
+        if (!user) {
+            return res.status(400).json({ errors: [{ msg: "User does not exist" }] });
+        }
+        // Generate a confirmation token
+        const confirmationToken = crypto_1.default.randomBytes(20).toString("hex");
+        // Get the hashed password from the existing user
+        const hashedPassword = user.password;
+        // Save the confirmation token, email, and hashed password in a temporary storage
+        const confirmation = new Confirmation_1.default({
+            email,
+            hashedPassword,
+            confirmationToken,
+        });
+        yield confirmation.save();
+        // Send the confirmation email
+        const emailBody = `To continue setting up your Qubemind account, please click the following link to confirm your email: ${process.env.FRONTEND_URL}/onboarding/details?token=${confirmationToken}&email=${email}&hashedPassword=${hashedPassword}`;
+        try {
+            yield (0, email_1.default)({
+                email: email,
+                subject: "Qubemind - Verify your email",
+                message: emailBody,
+            });
+            res.status(200).send({
+                message: "Confirmation email resent. Please check your email.",
+                user,
+            });
+            console.log("success");
+        }
+        catch (error) {
+            console.error("Failed to send confirmation email", JSON.stringify(error, null, 2));
+            res.status(500).send({ message: "Failed to send confirmation email" });
+        }
+    }),
+    changePassword: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        const { password } = req.body;
+        try {
+            const user = yield User_1.default.findByIdAndUpdate(req.params.id, {
+                password,
+            }, { new: true });
+            console.log(user, "success");
+            res.status(201).send({ message: "Password changed succesfully." });
+        }
+        catch (error) {
+            res.status(500).send({ message: "Failed to change password" });
+            console.log(error);
         }
     }),
 };

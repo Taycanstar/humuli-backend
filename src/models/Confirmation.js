@@ -26,7 +26,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
 const ConfirmationSchema = new mongoose_1.Schema({
     email: { type: String, required: true },
-    hashedPassword: { type: String, required: true },
+    hashedPassword: { type: String },
     confirmationToken: { type: String, required: true },
 });
 exports.default = mongoose_1.default.model("Confirmation", ConfirmationSchema);

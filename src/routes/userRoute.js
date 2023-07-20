@@ -17,4 +17,7 @@ router.put("/add-personal-info/:id", userController_1.userController.addPersonal
 router.post("/send-code", userController_1.userController.sendCode);
 router.post("/resend-code", userController_1.userController.resendCode);
 router.post("/confirm-phone-number/:id", userController_1.userController.confirmPhoneNumber);
+router.post("/forgot-password", userController_1.userController.forgotPassword);
+router.post("/confirm-otp", userController_1.userController.confirmOtp);
+router.post("/change-password", userController_1.userController.changePassword);
 exports.default = router;
