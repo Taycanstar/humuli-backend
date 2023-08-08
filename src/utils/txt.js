@@ -9,9 +9,9 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const path_1 = __importDefault(require("path"));
 const twilio_1 = __importDefault(require("twilio"));
 dotenv_1.default.config({ path: path_1.default.resolve(__dirname, "../../.env") });
-const accountSid = "ACe4baf33ea8a23b79c47e7dc64314cd4b";
+const accountSid = "AC2fd7cab6ba937e8385a3e16101551271";
 const authToken = process.env.TWILIO_AUTH_TOKEN;
-const verifySid = "VAa99e23617a15e5aefc6808668698730e";
+const verifySid = "VA79d86b957d5a71f27d7b1da9e01e2f81";
 const client = (0, twilio_1.default)(accountSid, authToken);
 const sendVerificationCode = (number) => {
     return client.verify.v2

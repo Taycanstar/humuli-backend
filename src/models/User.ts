@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema, Types } from "mongoose";
+import mongoose, { Date, Document, Schema, Types } from "mongoose";
 import crypto from "crypto";
 
 interface IUser extends Document {
@@ -12,9 +12,8 @@ interface IUser extends Document {
   birthday?: string;
   username?: string;
   photo?: string;
-  registrationStep?: string;
   registrationTokens?: string[];
-  botId?: Types.ObjectId[];
+  emailVerified?: boolean;
 }
 
 const userSchema = new Schema<IUser>(
@@ -29,9 +28,8 @@ const userSchema = new Schema<IUser>(
     birthday: { type: String },
     username: { type: String },
     photo: { type: String },
-    botId: [{ type: mongoose.Schema.Types.ObjectId }],
-    registrationStep: { type: String },
     registrationTokens: [{ type: String }],
+    emailVerified: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

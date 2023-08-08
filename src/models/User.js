@@ -35,9 +35,8 @@ const userSchema = new mongoose_1.Schema({
     birthday: { type: String },
     username: { type: String },
     photo: { type: String },
-    botId: [{ type: mongoose_1.default.Schema.Types.ObjectId }],
-    registrationStep: { type: String },
     registrationTokens: [{ type: String }],
+    emailVerified: { type: Boolean, default: false },
 }, { timestamps: true });
 const User = mongoose_1.default.model("User", userSchema);
 exports.default = User;

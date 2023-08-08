@@ -14,22 +14,33 @@ import { v4 as uuidv4 } from "uuid";
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
 export const userController = {
-  register: async (req: Request, res: Response) => {
-    const { email, password } = req.body;
+  checkEmailEdsxists: async (req: Request, res: Response) => {
+    const { email } = req.body;
     try {
-      // Check if user already exists
       let user = await User.findOne({ email });
       if (user) {
         return res.status(400).json({ message: "User already exists" });
       }
-      // Generate a confirmation token
+      res.status(200).send({
+        message: "Email is valid",
+      });
+
+      console.log("success");
+    } catch (error) {
+      res.status(500).send({ message: "Request failed" });
+    }
+  },
+  signup: async (req: Request, res: Response) => {
+    const { email, password, firstName, lastName, birthday, phoneNumber } =
+      req.body;
+
+    try {
       const confirmationToken = crypto.randomBytes(20).toString("hex");
 
       // Hash the password
       const hashedPassword = await bcrypt.hash(password, 10);
 
       // // Save the confirmation token, email, and hashed password in a temporary storage
-      // await Confirmation.create({ email, hashedPassword, confirmationToken });
 
       const confirmation = new Confirmation({
         email,
@@ -38,19 +49,29 @@ export const userController = {
       });
 
       await confirmation.save();
-
       // Send the confirmation email
-      const emailBody = `To continue setting up your Qubemind account, please click the following link to confirm your email: ${process.env.FRONTEND_URL}/auth/onboarding/details?token=${confirmationToken}&email=${email}&hashedPassword=${hashedPassword}`;
+      const emailBody = `To continue setting up your Humuli account, please click the following link to confirm your email: ${process.env.FRONTEND_URL}/auth/onboarding/details?token=${confirmationToken}&email=${email}&hashedPassword=${hashedPassword}`;
 
       await sendEmail({
         email: email,
-        subject: "Qubemind - Verify your email",
+        subject: "Humuli - Verify your email",
         message: emailBody,
       });
 
-      res
-        .status(200)
-        .send({ message: "Confirmation email sent. Please check your email." });
+      res.status(200).send({
+        message: "Confirmation email sent. Please check your email.",
+      });
+
+      const user = new User({
+        email: email.toLowerCase(),
+        password: hashedPassword,
+        firstName,
+        lastName,
+        phoneNumber,
+        birthday,
+      });
+
+      await user.save();
 
       console.log("success");
     } catch (error) {
@@ -58,15 +79,14 @@ export const userController = {
         "Failed to send confirmation email",
         JSON.stringify(error, null, 2)
       );
-      res.status(500).send({ message: "Failed to send confirmation email" });
+      res.status(500).send({ message: "Failed to create user" });
     }
   },
 
   login: async (req: Request, res: Response) => {
-    const { email, password, username, registrationToken } = req.body;
+    const { email, password, registrationToken } = req.body;
     try {
-      let user =
-        (await User.findOne({ email })) || (await User.findOne({ username }));
+      let user = await User.findOne({ email });
       if (!user) {
         return res.status(400).json({ error: "Invalid credentials" });
       }
@@ -97,37 +117,6 @@ export const userController = {
     }
   },
 
-  fakeLogin: async (req: Request, res: Response) => {
-    const { email, password, username, registrationToken } = req.body;
-    try {
-      let user =
-        (await User.findOne({ email })) || (await User.findOne({ username }));
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-        return res.status(400).json({ message: "Incorrect Password" });
-      }
-      if (registrationToken) {
-        if (
-          !user.registrationTokens ||
-          !user.registrationTokens.includes(registrationToken)
-        ) {
-          await User.findByIdAndUpdate(user._id, {
-            registrationTokens: user.registrationTokens
-              ? [...user.registrationTokens, registrationToken]
-              : [registrationToken],
-          });
-        }
-      }
-
-      return res.status(200).json({ message: "success", user });
-    } catch (error) {
-      console.log(error);
-    }
-  },
-
   confirmUser: async (req: Request, res: Response) => {
     const { confirmationToken, email, hashedPassword } = req.body;
 
@@ -147,15 +136,9 @@ export const userController = {
         .send({ message: "Invalid confirmation token, email, or password" });
     }
 
-    // Create a new user document in the User collection
-    const user = new User({
-      email: email.toLowerCase(),
-      password: hashedPassword,
-      regisrationStep: "emailVerified",
-    });
+    const user = await User.findOne({ email });
 
     try {
-      await user.save();
     } catch (error) {
       console.error("Failed to create user", JSON.stringify(error, null, 2));
       return res.status(500).send({ message: "Failed to create user" });
@@ -175,6 +158,23 @@ export const userController = {
       } else {
         res.status(200).json({ exists: false });
       }
+    } catch (error) {
+      res.status(500).json({
+        error: "An error occurred while checking if the user exists.",
+      });
+    }
+  },
+  checkEmailExists: async (req: Request, res: Response) => {
+    try {
+      const { email } = req.body;
+      const user = await User.findOne({ email });
+      if (user) {
+        return res.status(400).json({ message: "User already exists" });
+      }
+
+      res.status(200).send({
+        message: "Email is valid",
+      });
     } catch (error) {
       res.status(500).json({
         error: "An error occurred while checking if the user exists.",
@@ -206,7 +206,7 @@ export const userController = {
     await confirmation.save();
 
     // Send the confirmation email
-    const emailBody = `To continue setting up your Qubemind account, please click the following link to confirm your email: ${process.env.FRONTEND_URL}/onboarding/details?token=${confirmationToken}&email=${email}&hashedPassword=${hashedPassword}`;
+    const emailBody = `To continue setting up your Humuli account, please click the following link to confirm your email: ${process.env.FRONTEND_URL}/onboarding/details?token=${confirmationToken}&email=${email}&hashedPassword=${hashedPassword}`;
 
     try {
       await sendEmail({
@@ -229,34 +229,6 @@ export const userController = {
     }
   },
 
-  addPersonalInfo: async (req: Request, res: Response) => {
-    const { firstName, lastName, birthday, organizationName, username } =
-      req.body;
-    try {
-      let userFound = await User.findOne({ username });
-      if (userFound) {
-        return res.status(400).json({ error: "Username is not available" });
-      }
-      const user = await User.findByIdAndUpdate(
-        req.params.id,
-        {
-          firstName,
-          lastName,
-          birthday,
-          organizationName,
-          registrationStep: "personalInfoVerified",
-          username,
-        },
-        { new: true }
-      );
-      console.log(user, "success");
-      res.status(201).send({ message: "Personal details updated." });
-    } catch (error) {
-      res.status(500).send({ message: "Failed to add personal information" });
-      console.log(error);
-    }
-  },
-
   sendCode: async (req: Request, res: Response) => {
     const { phoneNumber } = req.body;
     try {
@@ -276,17 +248,7 @@ export const userController = {
     try {
       const response = await verifyNumber(phoneNumber, otpCode);
       if (response.status === "approved") {
-        // save the phone number to the user document
-        const user = await User.findByIdAndUpdate(
-          req.params.id,
-          {
-            phoneNumber,
-            registrationStep: "phoneNumberVerified",
-          },
-          { new: true }
-        );
-
-        res.status(200).send({ message: "Phone number verified.", user });
+        res.status(200).send({ message: "Phone number verified." });
       } else {
         res.status(400).send({ message: "Invalid verification code." });
       }
