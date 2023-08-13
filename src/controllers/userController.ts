@@ -30,17 +30,14 @@ export const userController = {
       res.status(500).send({ message: "Request failed" });
     }
   },
+
   signup: async (req: Request, res: Response) => {
     const { email, password, firstName, lastName, birthday, phoneNumber } =
       req.body;
 
     try {
       const confirmationToken = crypto.randomBytes(20).toString("hex");
-
-      // Hash the password
       const hashedPassword = await bcrypt.hash(password, 10);
-
-      // // Save the confirmation token, email, and hashed password in a temporary storage
 
       const confirmation = new Confirmation({
         email,
@@ -49,8 +46,8 @@ export const userController = {
       });
 
       await confirmation.save();
-      // Send the confirmation email
-      const emailBody = `To continue setting up your Humuli account, please click the following link to confirm your email: ${process.env.FRONTEND_URL}/auth/onboarding/details?token=${confirmationToken}&email=${email}&hashedPassword=${hashedPassword}`;
+
+      const emailBody = `To continue setting up your Humuli account, please click the following link to confirm your email: ${process.env.FRONTEND_URL}/auth/onboarding/details?token=${confirmationToken}`;
 
       await sendEmail({
         email: email,
@@ -58,9 +55,8 @@ export const userController = {
         message: emailBody,
       });
 
-      res.status(200).send({
-        message: "Confirmation email sent. Please check your email.",
-      });
+      // Instead of creating the user here, you might want to do it when the user clicks the link in the email.
+      // However, if you want to proceed with this flow, then you can continue and send a single response after the user creation.
 
       const user = new User({
         email: email.toLowerCase(),
@@ -72,13 +68,17 @@ export const userController = {
       });
 
       await user.save();
+      // Create and return a JWT token for the user after successful signup
+      const token = jwt.sign({ _id: user._id }, process.env.SECRET as string, {
+        expiresIn: "1h",
+      });
 
-      console.log("success");
+      res.status(200).json({
+        token,
+        message: "User created and authenticated successfully",
+      });
     } catch (error) {
-      console.error(
-        "Failed to send confirmation email",
-        JSON.stringify(error, null, 2)
-      );
+      console.error("Failed to signup", JSON.stringify(error, null, 2));
       res.status(500).send({ message: "Failed to create user" });
     }
   },
@@ -88,11 +88,11 @@ export const userController = {
     try {
       let user = await User.findOne({ email });
       if (!user) {
-        return res.status(400).json({ error: "Invalid credentials" });
+        return res.status(400).json({ message: "Email doesn't exist" });
       }
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
-        return res.status(400).json({ error: "Invalid credentials" });
+        return res.status(400).json({ message: "Password is incorrect" });
       }
       if (registrationToken) {
         if (

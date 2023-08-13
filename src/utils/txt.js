@@ -14,9 +14,10 @@ const authToken = process.env.TWILIO_AUTH_TOKEN;
 const verifySid = "VA79d86b957d5a71f27d7b1da9e01e2f81";
 const client = (0, twilio_1.default)(accountSid, authToken);
 const sendVerificationCode = (number) => {
-    return client.verify.v2
-        .services(verifySid)
-        .verifications.create({ to: number, channel: "sms" });
+    return client.verify.v2.services(verifySid).verifications.create({
+        to: number,
+        channel: "sms",
+    });
 };
 exports.sendVerificationCode = sendVerificationCode;
 const verifyNumber = (number, otpCode) => {

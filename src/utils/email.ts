@@ -12,12 +12,12 @@ const sendEmail = async (options: {
   var client = new postmark.ServerClient(api);
 
   client.sendEmail({
-    From: "noreply@qubemind.com",
+    From: "noreply@humuli.com",
     To: options.email,
     Subject: options.subject,
     HtmlBody: options.message,
     TextBody: options.message,
-    MessageStream: "onboarding",
+    MessageStream: "email-verification",
   });
 };
 

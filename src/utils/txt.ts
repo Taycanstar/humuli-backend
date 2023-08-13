@@ -11,9 +11,10 @@ const verifySid = "VA79d86b957d5a71f27d7b1da9e01e2f81";
 const client = twilio(accountSid, authToken);
 
 export const sendVerificationCode = (number: string) => {
-  return client.verify.v2
-    .services(verifySid)
-    .verifications.create({ to: number, channel: "sms" });
+  return client.verify.v2.services(verifySid).verifications.create({
+    to: number,
+    channel: "sms",
+  });
 };
 
 export const verifyNumber = (number: string, otpCode: string) => {
