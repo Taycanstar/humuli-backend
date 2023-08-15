@@ -18,4 +18,5 @@ router.post("/confirm-phone-number", userController_1.userController.confirmPhon
 router.post("/forgot-password", userController_1.userController.forgotPassword);
 router.post("/confirm-otp", userController_1.userController.confirmOtp);
 router.post("/change-password", userController_1.userController.changePassword);
+router.post("/set-new-password", userController_1.userController.setNewPassword);
 exports.default = router;
