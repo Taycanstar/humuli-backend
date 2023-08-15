@@ -16,6 +16,8 @@ interface IUser extends Document {
   emailVerified?: boolean;
 }
 
+const options = { discriminatorKey: "productType" };
+
 const userSchema = new Schema<IUser>(
   {
     firstName: { type: String },
@@ -31,9 +33,10 @@ const userSchema = new Schema<IUser>(
     registrationTokens: [{ type: String }],
     emailVerified: { type: Boolean, default: false },
   },
-  { timestamps: true }
+  { ...options, timestamps: true }
 );
 
 const User = mongoose.model<IUser>("User", userSchema);
 
 export default User;
+export { IUser };

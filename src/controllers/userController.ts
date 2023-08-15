@@ -1,11 +1,12 @@
 import { Request, Response } from "express";
 import User from "../models/User";
+import MoodmotifUser from "../models/MoodmotifUser";
+import CronoverseUser from "../models/CronoverseUser";
 import Confirmation from "../models/Confirmation";
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 import crypto from "crypto";
 import sendEmail from "../utils/email";
-
 import dotenv from "dotenv";
 import path from "path";
 import { sendVerificationCode, verifyNumber } from "../utils/txt";
@@ -32,6 +33,79 @@ export const userController = {
   },
 
   signup: async (req: Request, res: Response) => {
+    const {
+      email,
+      password,
+      firstName,
+      lastName,
+      birthday,
+      phoneNumber,
+      productType,
+    } = req.body;
+
+    try {
+      const confirmationToken = crypto.randomBytes(20).toString("hex");
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      const confirmation = new Confirmation({
+        email,
+        hashedPassword,
+        confirmationToken,
+      });
+
+      await confirmation.save();
+
+      const emailBody = `To continue setting up your Humuli account, please click the following link to confirm your email: ${process.env.FRONTEND_URL}/auth/onboarding/details?token=${confirmationToken}`;
+
+      await sendEmail({
+        email: email,
+        subject: "Humuli - Verify your email",
+        message: emailBody,
+      });
+
+      let newUser;
+      const userData = {
+        email: email.toLowerCase(),
+        password: hashedPassword,
+        firstName,
+        lastName,
+        phoneNumber,
+        birthday,
+      };
+
+      switch (productType) {
+        case "Moodmotif":
+          newUser = new MoodmotifUser(userData);
+          break;
+        case "Cronoverse":
+          newUser = new CronoverseUser(userData);
+          break;
+        default:
+          newUser = new User(userData);
+      }
+
+      await newUser.save();
+
+      // Create and return a JWT token for the user after successful signup
+      const token = jwt.sign(
+        { _id: newUser._id },
+        process.env.SECRET as string,
+        {
+          expiresIn: "1h",
+        }
+      );
+
+      res.status(200).json({
+        token,
+        message: "User created and authenticated successfully",
+      });
+    } catch (error) {
+      console.error("Failed to signup", JSON.stringify(error, null, 2));
+      res.status(500).send({ message: "Failed to create user" });
+    }
+  },
+
+  signup2: async (req: Request, res: Response) => {
     const { email, password, firstName, lastName, birthday, phoneNumber } =
       req.body;
 

@@ -24,6 +24,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
+const options = { discriminatorKey: "productType" };
 const userSchema = new mongoose_1.Schema({
     firstName: { type: String },
     lastName: { type: String },
@@ -37,6 +38,6 @@ const userSchema = new mongoose_1.Schema({
     photo: { type: String },
     registrationTokens: [{ type: String }],
     emailVerified: { type: Boolean, default: false },
-}, { timestamps: true });
+}, Object.assign(Object.assign({}, options), { timestamps: true }));
 const User = mongoose_1.default.model("User", userSchema);
 exports.default = User;

@@ -14,6 +14,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.userController = void 0;
 const User_1 = __importDefault(require("../models/User"));
+const MoodmotifUser_1 = __importDefault(require("../models/MoodmotifUser"));
+const CronoverseUser_1 = __importDefault(require("../models/CronoverseUser"));
 const Confirmation_1 = __importDefault(require("../models/Confirmation"));
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
@@ -41,6 +43,57 @@ exports.userController = {
         }
     }),
     signup: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        const { email, password, firstName, lastName, birthday, phoneNumber, productType, } = req.body;
+        try {
+            const confirmationToken = crypto_1.default.randomBytes(20).toString("hex");
+            const hashedPassword = yield bcrypt.hash(password, 10);
+            const confirmation = new Confirmation_1.default({
+                email,
+                hashedPassword,
+                confirmationToken,
+            });
+            yield confirmation.save();
+            const emailBody = `To continue setting up your Humuli account, please click the following link to confirm your email: ${process.env.FRONTEND_URL}/auth/onboarding/details?token=${confirmationToken}`;
+            yield (0, email_1.default)({
+                email: email,
+                subject: "Humuli - Verify your email",
+                message: emailBody,
+            });
+            let newUser;
+            const userData = {
+                email: email.toLowerCase(),
+                password: hashedPassword,
+                firstName,
+                lastName,
+                phoneNumber,
+                birthday,
+            };
+            switch (productType) {
+                case "Moodmotif":
+                    newUser = new MoodmotifUser_1.default(userData);
+                    break;
+                case "Cronoverse":
+                    newUser = new CronoverseUser_1.default(userData);
+                    break;
+                default:
+                    newUser = new User_1.default(userData);
+            }
+            yield newUser.save();
+            // Create and return a JWT token for the user after successful signup
+            const token = jwt.sign({ _id: newUser._id }, process.env.SECRET, {
+                expiresIn: "1h",
+            });
+            res.status(200).json({
+                token,
+                message: "User created and authenticated successfully",
+            });
+        }
+        catch (error) {
+            console.error("Failed to signup", JSON.stringify(error, null, 2));
+            res.status(500).send({ message: "Failed to create user" });
+        }
+    }),
+    signup2: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const { email, password, firstName, lastName, birthday, phoneNumber } = req.body;
         try {
             const confirmationToken = crypto_1.default.randomBytes(20).toString("hex");
