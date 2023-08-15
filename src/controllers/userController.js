@@ -313,10 +313,10 @@ exports.userController = {
             });
             yield confirmation.save();
             // Send the OTP email
-            const emailBody = `Your Qubemind one-time password (OTP) is: <b>${otp}</b>`;
+            const emailBody = `Your Humuli one-time password (OTP) is: <b>${otp}</b>`;
             yield (0, email_1.default)({
                 email: email,
-                subject: "Qubemind - Reset your password",
+                subject: "Humuli - Reset your password",
                 message: emailBody,
             });
             res.status(200).send({ message: "OTP sent. Please check your email." });

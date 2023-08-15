@@ -365,11 +365,11 @@ export const userController = {
       await confirmation.save();
 
       // Send the OTP email
-      const emailBody = `Your Qubemind one-time password (OTP) is: <b>${otp}</b>`;
+      const emailBody = `Your Humuli one-time password (OTP) is: <b>${otp}</b>`;
 
       await sendEmail({
         email: email,
-        subject: "Qubemind - Reset your password",
+        subject: "Humuli - Reset your password",
         message: emailBody,
       });
 
