@@ -42,7 +42,7 @@ exports.userController = {
             res.status(500).send({ message: "Request failed" });
         }
     }),
-    signup: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    signup3: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const { email, password, firstName, lastName, birthday, phoneNumber, productType, } = req.body;
         try {
             const confirmationToken = crypto_1.default.randomBytes(20).toString("hex");
@@ -135,8 +135,58 @@ exports.userController = {
             res.status(500).send({ message: "Failed to create user" });
         }
     }),
+    signup: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        const { email, password, firstName, lastName, birthday, phoneNumber, productType, } = req.body;
+        try {
+            const confirmationToken = crypto_1.default.randomBytes(20).toString("hex");
+            const hashedPassword = yield bcrypt.hash(password, 10);
+            const confirmation = new Confirmation_1.default({
+                email,
+                hashedPassword,
+                confirmationToken,
+            });
+            yield confirmation.save();
+            const emailBody = `To continue setting up your Humuli account, please click the following link to confirm your email: ${process.env.FRONTEND_URL}/auth/onboarding/details?token=${confirmationToken}`;
+            yield (0, email_1.default)({
+                email: email,
+                subject: "Humuli - Verify your email",
+                message: emailBody,
+            });
+            const userData = {
+                email: email.toLowerCase(),
+                password: hashedPassword,
+                firstName,
+                lastName,
+                phoneNumber,
+                birthday,
+                productsUsed: [productType],
+            };
+            switch (productType) {
+                case "Moodmotif":
+                    userData.moodData = {}; // Initialize as an empty object
+                    break;
+                case "Cronoverse":
+                    userData.cronoverseData = {}; // Initialize as an empty object
+                    break;
+                // ... handle other product types similarly
+            }
+            const newUser = new User_1.default(userData);
+            yield newUser.save();
+            const token = jwt.sign({ _id: newUser._id }, process.env.SECRET, {
+                expiresIn: "1h",
+            });
+            res.status(200).json({
+                token,
+                message: "User created and authenticated successfully",
+            });
+        }
+        catch (error) {
+            console.error("Failed to signup", JSON.stringify(error, null, 2));
+            res.status(500).send({ message: "Failed to create user" });
+        }
+    }),
     login: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-        const { email, password, registrationToken } = req.body;
+        const { email, password, registrationToken, productType } = req.body;
         try {
             let user = yield User_1.default.findOne({ email });
             if (!user) {
@@ -155,6 +205,10 @@ exports.userController = {
                             : [registrationToken],
                     });
                 }
+            }
+            if (!user.productsUsed.includes(productType)) {
+                user.productsUsed.push(productType);
+                yield user.save();
             }
             const token = jwt.sign({ _id: user._id }, process.env.SECRET, {
                 expiresIn: "1h",
@@ -332,7 +386,7 @@ exports.userController = {
         // Retrieve the confirmation document from the Confirmation collection
         const confirmation = yield Confirmation_1.default.findOne({ confirmationToken });
         if (!confirmation) {
-            return res.status(404).send({ message: "Confirmation token not found" });
+            return res.status(404).send({ message: "OTP is incorrect" });
         }
         // Check if the email and hashedPassword match the confirmation document
         if (confirmation.email !== email) {

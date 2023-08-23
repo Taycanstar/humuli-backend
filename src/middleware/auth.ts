@@ -18,7 +18,7 @@ export const requireLogin = async (
       const payload = jwt.verify(token, process.env.SECRET as string) as any;
       const user = await User.findById(payload._id);
       if (user) {
-        req.user = user.toObject(); // Convert the user object to a plain JavaScript object
+        req.user = user; // Convert the user object to a plain JavaScript object
         next();
       } else {
         res.status(404).json({ message: "user doesn't exist" });

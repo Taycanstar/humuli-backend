@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
 import UserRoute from "./src/routes/userRoute";
+import TaskRoute from "./src/routes/taskRoute";
 import ApiRoute from "./src/routes/apiRoute";
 const path = require("path");
 import AuthRoute from "./src/routes/authRoute";
@@ -21,6 +22,7 @@ const d: string = process.env.POSTMARK_API_TOKEN!;
 app.use("/u", UserRoute);
 app.use("/api", ApiRoute);
 app.post("/auth", AuthRoute);
+app.post("/task", TaskRoute);
 
 // Connect to MongoDB
 mongoose

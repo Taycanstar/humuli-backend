@@ -63,30 +63,29 @@ export const userController = {
         message: emailBody,
       });
 
-      let newUser;
-      const userData = {
+      const userData: any = {
         email: email.toLowerCase(),
         password: hashedPassword,
         firstName,
         lastName,
         phoneNumber,
         birthday,
+        productsUsed: [productType],
       };
 
       switch (productType) {
         case "Moodmotif":
-          newUser = new MoodmotifUser(userData);
+          userData.moodData = {}; // Initialize as an empty object
           break;
         case "Cronoverse":
-          newUser = new CronoverseUser(userData);
+          userData.cronoverseData = {}; // Initialize as an empty object
           break;
-        default:
-          newUser = new User(userData);
+        // ... handle other product types similarly
       }
 
+      const newUser = new User(userData);
       await newUser.save();
 
-      // Create and return a JWT token for the user after successful signup
       const token = jwt.sign(
         { _id: newUser._id },
         process.env.SECRET as string,
@@ -105,60 +104,8 @@ export const userController = {
     }
   },
 
-  signup2: async (req: Request, res: Response) => {
-    const { email, password, firstName, lastName, birthday, phoneNumber } =
-      req.body;
-
-    try {
-      const confirmationToken = crypto.randomBytes(20).toString("hex");
-      const hashedPassword = await bcrypt.hash(password, 10);
-
-      const confirmation = new Confirmation({
-        email,
-        hashedPassword,
-        confirmationToken,
-      });
-
-      await confirmation.save();
-
-      const emailBody = `To continue setting up your Humuli account, please click the following link to confirm your email: ${process.env.FRONTEND_URL}/auth/onboarding/details?token=${confirmationToken}`;
-
-      await sendEmail({
-        email: email,
-        subject: "Humuli - Verify your email",
-        message: emailBody,
-      });
-
-      // Instead of creating the user here, you might want to do it when the user clicks the link in the email.
-      // However, if you want to proceed with this flow, then you can continue and send a single response after the user creation.
-
-      const user = new User({
-        email: email.toLowerCase(),
-        password: hashedPassword,
-        firstName,
-        lastName,
-        phoneNumber,
-        birthday,
-      });
-
-      await user.save();
-      // Create and return a JWT token for the user after successful signup
-      const token = jwt.sign({ _id: user._id }, process.env.SECRET as string, {
-        expiresIn: "1h",
-      });
-
-      res.status(200).json({
-        token,
-        message: "User created and authenticated successfully",
-      });
-    } catch (error) {
-      console.error("Failed to signup", JSON.stringify(error, null, 2));
-      res.status(500).send({ message: "Failed to create user" });
-    }
-  },
-
   login: async (req: Request, res: Response) => {
-    const { email, password, registrationToken } = req.body;
+    const { email, password, registrationToken, productType } = req.body;
     try {
       let user = await User.findOne({ email });
       if (!user) {
@@ -179,6 +126,11 @@ export const userController = {
               : [registrationToken],
           });
         }
+      }
+
+      if (!user.productsUsed.includes(productType)) {
+        user.productsUsed.push(productType);
+        await user.save();
       }
 
       const token = jwt.sign({ _id: user._id }, process.env.SECRET as string, {
@@ -388,7 +340,7 @@ export const userController = {
     // Retrieve the confirmation document from the Confirmation collection
     const confirmation = await Confirmation.findOne({ confirmationToken });
     if (!confirmation) {
-      return res.status(404).send({ message: "Confirmation token not found" });
+      return res.status(404).send({ message: "OTP is incorrect" });
     }
 
     // Check if the email and hashedPassword match the confirmation document
