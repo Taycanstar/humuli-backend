@@ -8,6 +8,7 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const userRoute_1 = __importDefault(require("./src/routes/userRoute"));
+const taskRoute_1 = __importDefault(require("./src/routes/taskRoute"));
 const apiRoute_1 = __importDefault(require("./src/routes/apiRoute"));
 const path = require("path");
 const authRoute_1 = __importDefault(require("./src/routes/authRoute"));
@@ -22,6 +23,7 @@ const d = process.env.POSTMARK_API_TOKEN;
 app.use("/u", userRoute_1.default);
 app.use("/api", apiRoute_1.default);
 app.post("/auth", authRoute_1.default);
+app.use("/task", taskRoute_1.default);
 // Connect to MongoDB
 mongoose_1.default
     .connect(uri)

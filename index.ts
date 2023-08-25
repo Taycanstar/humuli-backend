@@ -22,7 +22,7 @@ const d: string = process.env.POSTMARK_API_TOKEN!;
 app.use("/u", UserRoute);
 app.use("/api", ApiRoute);
 app.post("/auth", AuthRoute);
-app.post("/task", TaskRoute);
+app.use("/task", TaskRoute);
 
 // Connect to MongoDB
 mongoose

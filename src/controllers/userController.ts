@@ -1,7 +1,5 @@
 import { Request, Response } from "express";
 import User from "../models/User";
-import MoodmotifUser from "../models/MoodmotifUser";
-import CronoverseUser from "../models/CronoverseUser";
 import Confirmation from "../models/Confirmation";
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
@@ -31,7 +29,6 @@ export const userController = {
       res.status(500).send({ message: "Request failed" });
     }
   },
-
   signup: async (req: Request, res: Response) => {
     const {
       email,
@@ -44,24 +41,13 @@ export const userController = {
     } = req.body;
 
     try {
-      const confirmationToken = crypto.randomBytes(20).toString("hex");
+      // Check if user already exists
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return res.status(400).json({ message: "Email already registered" });
+      }
+
       const hashedPassword = await bcrypt.hash(password, 10);
-
-      const confirmation = new Confirmation({
-        email,
-        hashedPassword,
-        confirmationToken,
-      });
-
-      await confirmation.save();
-
-      const emailBody = `To continue setting up your Humuli account, please click the following link to confirm your email: ${process.env.FRONTEND_URL}/auth/onboarding/details?token=${confirmationToken}`;
-
-      await sendEmail({
-        email: email,
-        subject: "Humuli - Verify your email",
-        message: emailBody,
-      });
 
       const userData: any = {
         email: email.toLowerCase(),
@@ -71,14 +57,15 @@ export const userController = {
         phoneNumber,
         birthday,
         productsUsed: [productType],
+        refreshTokens: [],
       };
 
       switch (productType) {
         case "Moodmotif":
-          userData.moodData = {}; // Initialize as an empty object
+          userData.moodData = {};
           break;
-        case "Cronoverse":
-          userData.cronoverseData = {}; // Initialize as an empty object
+        case "Maxticker":
+          userData.cronoverseData = {};
           break;
         // ... handle other product types similarly
       }
@@ -86,35 +73,65 @@ export const userController = {
       const newUser = new User(userData);
       await newUser.save();
 
+      const confirmationToken = crypto.randomBytes(20).toString("hex");
+      const confirmation = new Confirmation({
+        email,
+        hashedPassword,
+        confirmationToken,
+      });
+      await confirmation.save();
+
+      const emailBody = `To continue setting up your Humuli account, please click the following link to confirm your email: ${process.env.FRONTEND_URL}/auth/onboarding/details?token=${confirmationToken}`;
+      await sendEmail({
+        email: email,
+        subject: "Humuli - Verify your email",
+        message: emailBody,
+      });
+
       const token = jwt.sign(
         { _id: newUser._id },
         process.env.SECRET as string,
-        {
-          expiresIn: "1h",
-        }
+        { expiresIn: "1h" }
       );
+
+      const refreshToken = jwt.sign(
+        { _id: newUser._id },
+        process.env.REFRESH_SECRET as string,
+        { expiresIn: "365d" }
+      );
+
+      newUser.refreshTokens?.push(refreshToken);
+      await newUser.save();
 
       res.status(200).json({
         token,
+        refreshToken,
         message: "User created and authenticated successfully",
       });
-    } catch (error) {
-      console.error("Failed to signup", JSON.stringify(error, null, 2));
-      res.status(500).send({ message: "Failed to create user" });
+    } catch (error: any) {
+      console.error("Error during signup:", error?.message, error?.stack);
+      res
+        .status(500)
+        .send({ message: "Failed to create user", error: error.message });
     }
   },
 
   login: async (req: Request, res: Response) => {
     const { email, password, registrationToken, productType } = req.body;
+
+    const MAX_REFRESH_TOKENS = 5; // Set your desired limit
+
     try {
       let user = await User.findOne({ email });
       if (!user) {
-        return res.status(400).json({ message: "Email doesn't exist" });
+        return res.status(400).json({ message: "User doesn't exist" });
       }
+
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
         return res.status(400).json({ message: "Password is incorrect" });
       }
+
       if (registrationToken) {
         if (
           !user.registrationTokens ||
@@ -137,10 +154,59 @@ export const userController = {
         expiresIn: "1h",
       });
 
-      return res.status(200).json({ token });
+      const refreshToken = jwt.sign(
+        { _id: user._id },
+        process.env.REFRESH_SECRET as string,
+        {
+          expiresIn: "365d",
+        }
+      );
+
+      // Limit the number of refresh tokens
+      if (
+        user.refreshTokens &&
+        user.refreshTokens.length >= MAX_REFRESH_TOKENS
+      ) {
+        user.refreshTokens.shift(); // Remove the oldest token
+      }
+      user.refreshTokens?.push(refreshToken);
+
+      await user.save();
+
+      return res.status(200).json({ token, refreshToken });
     } catch (error) {
       console.log(error);
+      return res.status(500).json({ message: "Server error" });
     }
+  },
+  refreshToken: async (req: Request, res: Response) => {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(400).json({ message: "Refresh token is required" });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(refreshToken, process.env.REFRESH_SECRET as string);
+    } catch (err) {
+      return res.status(401).json({ message: "Invalid refresh token" });
+    }
+
+    const user = await User.findById(decoded._id);
+    if (!user || !user.refreshTokens?.includes(refreshToken)) {
+      return res.status(401).json({ message: "Invalid refresh token" });
+    }
+
+    const newAccessToken = jwt.sign(
+      { _id: user._id },
+      process.env.SECRET as string,
+      {
+        expiresIn: "1h",
+      }
+    );
+
+    res.json({ token: newAccessToken });
   },
 
   confirmUser: async (req: Request, res: Response) => {

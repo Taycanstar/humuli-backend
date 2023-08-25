@@ -24,6 +24,53 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
+const HistorySchema = new mongoose_1.Schema({
+    action: {
+        type: String,
+        enum: ["start", "pause", "stop", "resume", "lap"],
+        required: true,
+    },
+    timestamp: {
+        type: Date,
+        default: Date.now,
+    },
+});
+const LapSchema = new mongoose_1.Schema({
+    name: String,
+    time: Number,
+});
+const SessionSchema = new mongoose_1.Schema({
+    start_time: Date,
+    total_duration: {
+        type: Number,
+        default: 0,
+    },
+    status: {
+        type: String,
+        enum: ["running", "paused", "stopped"],
+        default: "stopped",
+    },
+    laps: [LapSchema],
+    history: [HistorySchema],
+});
+const TaskSchema = new mongoose_1.Schema({
+    name: {
+        type: String,
+        required: true,
+    },
+    goal: {
+        type: Number,
+    },
+    color: {
+        type: String,
+    },
+    sessions: [SessionSchema],
+});
+const AnalyticsSchema = new mongoose_1.Schema({
+    daily_duration: Number,
+    weekly_duration: Number,
+    yearly_duration: Number,
+});
 const userSchema = new mongoose_1.Schema({
     firstName: { type: String },
     lastName: { type: String },
@@ -41,11 +88,19 @@ const userSchema = new mongoose_1.Schema({
         mood: { type: String },
         stats: { type: mongoose_1.Schema.Types.Mixed },
     },
-    cronoverseData: {
-        timer: { type: Number },
-        task: { type: String },
+    refreshTokens: [{ type: String }],
+    maxtickerData: {
+        tasks: {
+            type: [TaskSchema],
+            validate: [arrayLimit, "{PATH} exceeds the limit of 4 timers"],
+        },
+        history: [HistorySchema],
+        analytics: AnalyticsSchema,
     },
     productsUsed: [{ type: String }],
 }, { timestamps: true });
+function arrayLimit(val) {
+    return val.length <= 4;
+}
 const User = mongoose_1.default.model("User", userSchema);
 exports.default = User;

@@ -16,24 +16,22 @@ export const taskController = {
     const userId = (req?.user as IUser)?._id;
 
     // Get task details from the request
-    const { name, goal, start_time, total_duration, status, laps } = req.body;
+    const { name, goal, sessions, laps, color } = req.body;
 
     try {
       // Find the user
       let user = await User.findById(userId);
-      if (!user) {
-        return res.status(400).json({ message: "User not found" });
-      }
+
+      if (!user || !user.maxtickerData)
+        return res.status(400).json({ message: "User or user data not found" });
 
       // Create new task
       const newTask = {
         name,
         goal,
-        start_time,
-        total_duration: total_duration || 0,
-        status: status || "stopped",
+        sessions: sessions || [],
         laps: laps || [],
-        history: [],
+        color,
       };
 
       // Validate tasks array limit
@@ -50,6 +48,88 @@ export const taskController = {
       await user.save();
 
       return res.status(200).json({ message: "Task added successfully" });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+  getAllTasks: async (req: Request, res: Response) => {
+    const userId = (req?.user as IUser)?._id;
+
+    try {
+      const user = await User.findById(userId);
+
+      if (!user || !user.maxtickerData)
+        return res.status(400).json({ message: "User or user data not found" });
+
+      return res.status(200).json(user?.maxtickerData?.tasks);
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+  updateTask: async (req: Request, res: Response) => {
+    const userId = (req?.user as IUser)?._id;
+    const taskId = req.params.id; // Assuming you pass task ID in the URL
+
+    try {
+      const user = await User.findById(userId);
+
+      if (!user || !user.maxtickerData)
+        return res.status(400).json({ message: "User or user data not found" });
+
+      const taskIndex = user?.maxtickerData?.tasks.findIndex(
+        (t) => t._id == taskId
+      );
+      if (taskIndex === -1)
+        return res.status(400).json({ message: "Task not found" });
+
+      // Update the task
+      user.maxtickerData.tasks[taskIndex] = req.body;
+
+      await user.save();
+      return res.status(200).json({ message: "Task updated successfully" });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+  deleteTask: async (req: Request, res: Response) => {
+    const userId = (req?.user as IUser)?._id;
+    const taskId = req.params.id; // Assuming you pass task ID in the URL
+
+    try {
+      const user = await User.findById(userId);
+      if (!user || !user.maxtickerData)
+        return res.status(400).json({ message: "User or user data not found" });
+
+      user.maxtickerData.tasks = user.maxtickerData.tasks.filter(
+        (t) => t._id !== taskId
+      );
+
+      await user.save();
+      return res.status(200).json({ message: "Task deleted successfully" });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+  getSingleTask: async (req: Request, res: Response) => {
+    const userId = (req.user as IUser)._id;
+    const taskId = req.params.taskId;
+
+    try {
+      const user = await User.findById(userId);
+      if (!user || !user.maxtickerData)
+        return res.status(400).json({ message: "User or user data not found" });
+
+      const task = user.maxtickerData.tasks.find(
+        (t) => t._id.toString() === taskId
+      );
+
+      if (!task) return res.status(404).json({ message: "Task not found" });
+
+      return res.status(200).json(task);
     } catch (error) {
       console.log(error);
       return res.status(500).json({ message: "Internal server error" });

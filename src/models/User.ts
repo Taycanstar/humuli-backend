@@ -18,14 +18,7 @@ const LapSchema = new Schema({
   time: Number,
 });
 
-const TaskSchema = new Schema({
-  name: {
-    type: String,
-    required: true,
-  },
-  goal: {
-    type: Number,
-  },
+const SessionSchema = new Schema({
   start_time: Date,
   total_duration: {
     type: Number,
@@ -37,8 +30,21 @@ const TaskSchema = new Schema({
     default: "stopped",
   },
   laps: [LapSchema],
-
   history: [HistorySchema],
+});
+
+const TaskSchema = new Schema({
+  name: {
+    type: String,
+    required: true,
+  },
+  goal: {
+    type: Number,
+  },
+  color: {
+    type: String,
+  },
+  sessions: [SessionSchema],
 });
 
 const AnalyticsSchema = new Schema({
@@ -71,6 +77,7 @@ interface IUser extends Document {
   };
   productsUsed: string[];
   _id?: Types.ObjectId;
+  refreshTokens?: string[];
 }
 
 const userSchema = new Schema<IUser>(
@@ -91,6 +98,8 @@ const userSchema = new Schema<IUser>(
       mood: { type: String },
       stats: { type: Schema.Types.Mixed },
     },
+    refreshTokens: [{ type: String }],
+
     maxtickerData: {
       tasks: {
         type: [TaskSchema],

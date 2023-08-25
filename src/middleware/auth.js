@@ -20,24 +20,40 @@ const path_1 = __importDefault(require("path"));
 dotenv_1.default.config({ path: path_1.default.resolve(__dirname, "../../.env") });
 const requireLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        if (req.headers.authorization) {
-            const token = req.headers.authorization.split(" ")[1];
-            const payload = jsonwebtoken_1.default.verify(token, process.env.SECRET);
-            const user = yield User_1.default.findById(payload._id);
-            if (user) {
-                req.user = user.toObject(); // Convert the user object to a plain JavaScript object
-                next();
-            }
-            else {
-                res.status(404).json({ message: "user doesn't exist" });
-            }
+        const authHeader = req.headers.authorization;
+        if (!authHeader) {
+            console.log("Authorization header missing");
+            return res.status(400).json({ message: "Unauthorized: Token missing" });
         }
-        else {
-            res.status(400).json({ message: "unauthorized" });
+        const tokenParts = authHeader.split(" ");
+        if (tokenParts.length !== 2) {
+            console.log("Token format is incorrect");
+            return res
+                .status(400)
+                .json({ message: "Unauthorized: Token format is incorrect" });
         }
+        const token = tokenParts[1];
+        let payload;
+        try {
+            payload = jsonwebtoken_1.default.verify(token, process.env.SECRET);
+        }
+        catch (err) {
+            console.error("Token verification failed:", err.message);
+            return res
+                .status(401)
+                .json({ message: "Unauthorized: Token is invalid" });
+        }
+        const user = yield User_1.default.findById(payload._id);
+        if (!user) {
+            console.log("User with given ID not found");
+            return res.status(404).json({ message: "User not found" });
+        }
+        req.user = user;
+        next();
     }
     catch (error) {
-        res.status(500).json(error);
+        console.error("Unexpected error in requireLogin:", error);
+        res.status(500).json({ message: "Internal server error" });
     }
 });
 exports.requireLogin = requireLogin;

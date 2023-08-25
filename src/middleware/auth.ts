@@ -12,21 +12,43 @@ export const requireLogin = async (
   next: NextFunction
 ) => {
   try {
-    if (req.headers.authorization) {
-      const token = req.headers.authorization.split(" ")[1];
+    const authHeader = req.headers.authorization;
 
-      const payload = jwt.verify(token, process.env.SECRET as string) as any;
-      const user = await User.findById(payload._id);
-      if (user) {
-        req.user = user; // Convert the user object to a plain JavaScript object
-        next();
-      } else {
-        res.status(404).json({ message: "user doesn't exist" });
-      }
-    } else {
-      res.status(400).json({ message: "unauthorized" });
+    if (!authHeader) {
+      console.log("Authorization header missing");
+      return res.status(400).json({ message: "Unauthorized: Token missing" });
     }
+
+    const tokenParts = authHeader.split(" ");
+    if (tokenParts.length !== 2) {
+      console.log("Token format is incorrect");
+      return res
+        .status(400)
+        .json({ message: "Unauthorized: Token format is incorrect" });
+    }
+
+    const token = tokenParts[1];
+
+    let payload;
+    try {
+      payload = jwt.verify(token, process.env.SECRET as string) as any;
+    } catch (err: any) {
+      console.error("Token verification failed:", err.message);
+      return res
+        .status(401)
+        .json({ message: "Unauthorized: Token is invalid" });
+    }
+
+    const user = await User.findById(payload._id);
+    if (!user) {
+      console.log("User with given ID not found");
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    req.user = user;
+    next();
   } catch (error) {
-    res.status(500).json(error);
+    console.error("Unexpected error in requireLogin:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };

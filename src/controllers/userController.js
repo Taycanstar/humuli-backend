@@ -14,8 +14,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.userController = void 0;
 const User_1 = __importDefault(require("../models/User"));
-const MoodmotifUser_1 = __importDefault(require("../models/MoodmotifUser"));
-const CronoverseUser_1 = __importDefault(require("../models/CronoverseUser"));
 const Confirmation_1 = __importDefault(require("../models/Confirmation"));
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
@@ -42,116 +40,16 @@ exports.userController = {
             res.status(500).send({ message: "Request failed" });
         }
     }),
-    signup3: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-        const { email, password, firstName, lastName, birthday, phoneNumber, productType, } = req.body;
-        try {
-            const confirmationToken = crypto_1.default.randomBytes(20).toString("hex");
-            const hashedPassword = yield bcrypt.hash(password, 10);
-            const confirmation = new Confirmation_1.default({
-                email,
-                hashedPassword,
-                confirmationToken,
-            });
-            yield confirmation.save();
-            const emailBody = `To continue setting up your Humuli account, please click the following link to confirm your email: ${process.env.FRONTEND_URL}/auth/onboarding/details?token=${confirmationToken}`;
-            yield (0, email_1.default)({
-                email: email,
-                subject: "Humuli - Verify your email",
-                message: emailBody,
-            });
-            let newUser;
-            const userData = {
-                email: email.toLowerCase(),
-                password: hashedPassword,
-                firstName,
-                lastName,
-                phoneNumber,
-                birthday,
-            };
-            switch (productType) {
-                case "Moodmotif":
-                    newUser = new MoodmotifUser_1.default(userData);
-                    break;
-                case "Cronoverse":
-                    newUser = new CronoverseUser_1.default(userData);
-                    break;
-                default:
-                    newUser = new User_1.default(userData);
-            }
-            yield newUser.save();
-            // Create and return a JWT token for the user after successful signup
-            const token = jwt.sign({ _id: newUser._id }, process.env.SECRET, {
-                expiresIn: "1h",
-            });
-            res.status(200).json({
-                token,
-                message: "User created and authenticated successfully",
-            });
-        }
-        catch (error) {
-            console.error("Failed to signup", JSON.stringify(error, null, 2));
-            res.status(500).send({ message: "Failed to create user" });
-        }
-    }),
-    signup2: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-        const { email, password, firstName, lastName, birthday, phoneNumber } = req.body;
-        try {
-            const confirmationToken = crypto_1.default.randomBytes(20).toString("hex");
-            const hashedPassword = yield bcrypt.hash(password, 10);
-            const confirmation = new Confirmation_1.default({
-                email,
-                hashedPassword,
-                confirmationToken,
-            });
-            yield confirmation.save();
-            const emailBody = `To continue setting up your Humuli account, please click the following link to confirm your email: ${process.env.FRONTEND_URL}/auth/onboarding/details?token=${confirmationToken}`;
-            yield (0, email_1.default)({
-                email: email,
-                subject: "Humuli - Verify your email",
-                message: emailBody,
-            });
-            // Instead of creating the user here, you might want to do it when the user clicks the link in the email.
-            // However, if you want to proceed with this flow, then you can continue and send a single response after the user creation.
-            const user = new User_1.default({
-                email: email.toLowerCase(),
-                password: hashedPassword,
-                firstName,
-                lastName,
-                phoneNumber,
-                birthday,
-            });
-            yield user.save();
-            // Create and return a JWT token for the user after successful signup
-            const token = jwt.sign({ _id: user._id }, process.env.SECRET, {
-                expiresIn: "1h",
-            });
-            res.status(200).json({
-                token,
-                message: "User created and authenticated successfully",
-            });
-        }
-        catch (error) {
-            console.error("Failed to signup", JSON.stringify(error, null, 2));
-            res.status(500).send({ message: "Failed to create user" });
-        }
-    }),
     signup: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        var _a;
         const { email, password, firstName, lastName, birthday, phoneNumber, productType, } = req.body;
         try {
-            const confirmationToken = crypto_1.default.randomBytes(20).toString("hex");
+            // Check if user already exists
+            const existingUser = yield User_1.default.findOne({ email });
+            if (existingUser) {
+                return res.status(400).json({ message: "Email already registered" });
+            }
             const hashedPassword = yield bcrypt.hash(password, 10);
-            const confirmation = new Confirmation_1.default({
-                email,
-                hashedPassword,
-                confirmationToken,
-            });
-            yield confirmation.save();
-            const emailBody = `To continue setting up your Humuli account, please click the following link to confirm your email: ${process.env.FRONTEND_URL}/auth/onboarding/details?token=${confirmationToken}`;
-            yield (0, email_1.default)({
-                email: email,
-                subject: "Humuli - Verify your email",
-                message: emailBody,
-            });
             const userData = {
                 email: email.toLowerCase(),
                 password: hashedPassword,
@@ -160,37 +58,57 @@ exports.userController = {
                 phoneNumber,
                 birthday,
                 productsUsed: [productType],
+                refreshTokens: [],
             };
             switch (productType) {
                 case "Moodmotif":
-                    userData.moodData = {}; // Initialize as an empty object
+                    userData.moodData = {};
                     break;
-                case "Cronoverse":
-                    userData.cronoverseData = {}; // Initialize as an empty object
+                case "Maxticker":
+                    userData.cronoverseData = {};
                     break;
                 // ... handle other product types similarly
             }
             const newUser = new User_1.default(userData);
             yield newUser.save();
-            const token = jwt.sign({ _id: newUser._id }, process.env.SECRET, {
-                expiresIn: "1h",
+            const confirmationToken = crypto_1.default.randomBytes(20).toString("hex");
+            const confirmation = new Confirmation_1.default({
+                email,
+                hashedPassword,
+                confirmationToken,
             });
+            yield confirmation.save();
+            const emailBody = `To continue setting up your Humuli account, please click the following link to confirm your email: ${process.env.FRONTEND_URL}/auth/onboarding/details?token=${confirmationToken}`;
+            yield (0, email_1.default)({
+                email: email,
+                subject: "Humuli - Verify your email",
+                message: emailBody,
+            });
+            const token = jwt.sign({ _id: newUser._id }, process.env.SECRET, { expiresIn: "1h" });
+            const refreshToken = jwt.sign({ _id: newUser._id }, process.env.REFRESH_SECRET, { expiresIn: "365d" });
+            (_a = newUser.refreshTokens) === null || _a === void 0 ? void 0 : _a.push(refreshToken);
+            yield newUser.save();
             res.status(200).json({
                 token,
+                refreshToken,
                 message: "User created and authenticated successfully",
             });
         }
         catch (error) {
-            console.error("Failed to signup", JSON.stringify(error, null, 2));
-            res.status(500).send({ message: "Failed to create user" });
+            console.error("Error during signup:", error === null || error === void 0 ? void 0 : error.message, error === null || error === void 0 ? void 0 : error.stack);
+            res
+                .status(500)
+                .send({ message: "Failed to create user", error: error.message });
         }
     }),
     login: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        var _b;
         const { email, password, registrationToken, productType } = req.body;
+        const MAX_REFRESH_TOKENS = 5; // Set your desired limit
         try {
             let user = yield User_1.default.findOne({ email });
             if (!user) {
-                return res.status(400).json({ message: "Email doesn't exist" });
+                return res.status(400).json({ message: "User doesn't exist" });
             }
             const isMatch = yield bcrypt.compare(password, user.password);
             if (!isMatch) {
@@ -213,11 +131,44 @@ exports.userController = {
             const token = jwt.sign({ _id: user._id }, process.env.SECRET, {
                 expiresIn: "1h",
             });
-            return res.status(200).json({ token });
+            const refreshToken = jwt.sign({ _id: user._id }, process.env.REFRESH_SECRET, {
+                expiresIn: "365d",
+            });
+            // Limit the number of refresh tokens
+            if (user.refreshTokens &&
+                user.refreshTokens.length >= MAX_REFRESH_TOKENS) {
+                user.refreshTokens.shift(); // Remove the oldest token
+            }
+            (_b = user.refreshTokens) === null || _b === void 0 ? void 0 : _b.push(refreshToken);
+            yield user.save();
+            return res.status(200).json({ token, refreshToken });
         }
         catch (error) {
             console.log(error);
+            return res.status(500).json({ message: "Server error" });
         }
+    }),
+    refreshToken: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        var _c;
+        const { refreshToken } = req.body;
+        if (!refreshToken) {
+            return res.status(400).json({ message: "Refresh token is required" });
+        }
+        let decoded;
+        try {
+            decoded = jwt.verify(refreshToken, process.env.REFRESH_SECRET);
+        }
+        catch (err) {
+            return res.status(401).json({ message: "Invalid refresh token" });
+        }
+        const user = yield User_1.default.findById(decoded._id);
+        if (!user || !((_c = user.refreshTokens) === null || _c === void 0 ? void 0 : _c.includes(refreshToken))) {
+            return res.status(401).json({ message: "Invalid refresh token" });
+        }
+        const newAccessToken = jwt.sign({ _id: user._id }, process.env.SECRET, {
+            expiresIn: "1h",
+        });
+        res.json({ token: newAccessToken });
     }),
     confirmUser: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const { confirmationToken, email, hashedPassword } = req.body;

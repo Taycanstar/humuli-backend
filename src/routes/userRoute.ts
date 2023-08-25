@@ -15,5 +15,6 @@ router.post("/forgot-password", userController.forgotPassword);
 router.post("/confirm-otp", userController.confirmOtp);
 router.post("/change-password", userController.changePassword);
 router.post("/set-new-password", userController.setNewPassword);
+router.post("/refresh-token", userController.refreshToken);
 
 export default router;
