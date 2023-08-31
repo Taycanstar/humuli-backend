@@ -19,8 +19,8 @@ const LapSchema = new Schema({
 });
 
 const SessionSchema = new Schema({
-  start_time: Date,
-  total_duration: {
+  startTime: Number,
+  totalDuration: {
     type: Number,
     default: 0,
   },
@@ -31,6 +31,8 @@ const SessionSchema = new Schema({
   },
   laps: [LapSchema],
   history: [HistorySchema],
+  breaks: { type: Number, default: 0 },
+  timeSpentOnBreaks: { type: Number, default: 0 },
 });
 
 const TaskSchema = new Schema({
@@ -45,12 +47,21 @@ const TaskSchema = new Schema({
     type: String,
   },
   sessions: [SessionSchema],
+  streak: { type: Number, default: 0 },
+  longestStreak: { type: Number, default: 0 },
+  activeDays: [{ type: Date }],
+  fastestLap: { type: Number, default: Infinity },
+  slowestLap: { type: Number, default: 0 },
+  breaks: { type: Number, default: 0 },
+  timeSpentOnBreaks: { type: Number, default: 0 },
 });
 
 const AnalyticsSchema = new Schema({
-  daily_duration: Number,
-  weekly_duration: Number,
-  yearly_duration: Number,
+  dailyDuration: Number,
+  weeklyDuration: Number,
+  yearlyDuration: Number,
+  mostActiveDay: String,
+  mostFrequentTask: String,
 });
 
 interface IUser extends Document {

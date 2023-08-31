@@ -12,4 +12,5 @@ router.get("/fetch-all", auth_1.requireLogin, taskController_1.taskController.ge
 router.get("/:id", auth_1.requireLogin, taskController_1.taskController.getSingleTask);
 router.put("/:id", auth_1.requireLogin, taskController_1.taskController.updateTask);
 router.delete("/:id", auth_1.requireLogin, taskController_1.taskController.deleteTask);
+router.post("/:id/end-session", auth_1.requireLogin, taskController_1.taskController.endSession);
 exports.default = router;

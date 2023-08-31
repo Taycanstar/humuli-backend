@@ -8,5 +8,6 @@ router.get("/fetch-all", requireLogin, taskController.getAllTasks);
 router.get("/:id", requireLogin, taskController.getSingleTask);
 router.put("/:id", requireLogin, taskController.updateTask);
 router.delete("/:id", requireLogin, taskController.deleteTask);
+router.post("/:id/end-session", requireLogin, taskController.endSession);
 
 export default router;
