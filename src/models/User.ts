@@ -18,43 +18,49 @@ const LapSchema = new Schema({
   time: Number,
 });
 
-const SessionSchema = new Schema({
-  startTime: Number,
-  totalDuration: {
-    type: Number,
-    default: 0,
+const SessionSchema = new Schema(
+  {
+    startTime: Number,
+    totalDuration: {
+      type: Number,
+      default: 0,
+    },
+    status: {
+      type: String,
+      enum: ["running", "paused", "stopped"],
+      default: "stopped",
+    },
+    laps: [LapSchema],
+    history: [HistorySchema],
+    breaks: { type: Number, default: 0 },
+    timeSpentOnBreaks: { type: Number, default: 0 },
   },
-  status: {
-    type: String,
-    enum: ["running", "paused", "stopped"],
-    default: "stopped",
-  },
-  laps: [LapSchema],
-  history: [HistorySchema],
-  breaks: { type: Number, default: 0 },
-  timeSpentOnBreaks: { type: Number, default: 0 },
-});
+  { timestamps: true }
+);
 
-const TaskSchema = new Schema({
-  name: {
-    type: String,
-    required: true,
+const TaskSchema = new Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+    },
+    goal: {
+      type: Number,
+    },
+    color: {
+      type: String,
+    },
+    sessions: [SessionSchema],
+    streak: { type: Number, default: 0 },
+    longestStreak: { type: Number, default: 0 },
+    activeDays: [{ type: Date }],
+    fastestLap: { type: Number, default: Infinity },
+    slowestLap: { type: Number, default: 0 },
+    breaks: { type: Number, default: 0 },
+    timeSpentOnBreaks: { type: Number, default: 0 },
   },
-  goal: {
-    type: Number,
-  },
-  color: {
-    type: String,
-  },
-  sessions: [SessionSchema],
-  streak: { type: Number, default: 0 },
-  longestStreak: { type: Number, default: 0 },
-  activeDays: [{ type: Date }],
-  fastestLap: { type: Number, default: Infinity },
-  slowestLap: { type: Number, default: 0 },
-  breaks: { type: Number, default: 0 },
-  timeSpentOnBreaks: { type: Number, default: 0 },
-});
+  { timestamps: true }
+);
 
 const AnalyticsSchema = new Schema({
   dailyDuration: Number,
@@ -68,6 +74,7 @@ interface IUser extends Document {
   firstName?: string;
   lastName?: string;
   organizationName?: string;
+  subscription?: string;
   email: string;
   password: string;
   gender?: string;
@@ -104,6 +111,7 @@ const userSchema = new Schema<IUser>(
     username: { type: String },
     photo: { type: String },
     registrationTokens: [{ type: String }],
+    subscription: { type: String },
     emailVerified: { type: Boolean, default: false },
     moodmotifData: {
       mood: { type: String },

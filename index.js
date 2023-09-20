@@ -9,6 +9,7 @@ const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const userRoute_1 = __importDefault(require("./src/routes/userRoute"));
 const taskRoute_1 = __importDefault(require("./src/routes/taskRoute"));
+const payRoute_1 = __importDefault(require("./src/routes/payRoute"));
 const apiRoute_1 = __importDefault(require("./src/routes/apiRoute"));
 const path = require("path");
 const authRoute_1 = __importDefault(require("./src/routes/authRoute"));
@@ -24,6 +25,7 @@ app.use("/u", userRoute_1.default);
 app.use("/api", apiRoute_1.default);
 app.post("/auth", authRoute_1.default);
 app.use("/task", taskRoute_1.default);
+app.use("/pay", payRoute_1.default);
 // Connect to MongoDB
 mongoose_1.default
     .connect(uri)

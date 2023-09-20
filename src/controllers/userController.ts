@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import User from "../models/User";
+import User, { IUser } from "../models/User";
 import Confirmation from "../models/Confirmation";
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
@@ -58,6 +58,7 @@ export const userController = {
         birthday,
         productsUsed: [productType],
         refreshTokens: [],
+        subscription: "basic",
       };
 
       switch (productType) {
@@ -510,6 +511,24 @@ export const userController = {
     } catch (error) {
       console.error(
         "Failed to change password",
+        JSON.stringify(error, null, 2)
+      );
+      res.status(500).send({ message: "Failed to change password" });
+    }
+  },
+  getSubscription: async (req: Request, res: Response) => {
+    const userId = (req?.user as IUser)?._id;
+
+    try {
+      let user = await User.findById(userId);
+
+      if (!user || !user.subscription)
+        return res.status(400).json({ message: "User or user data not found" });
+
+      res.status(200).send(user.subscription);
+    } catch (error) {
+      console.error(
+        "Failed to fetch subscription ",
         JSON.stringify(error, null, 2)
       );
       res.status(500).send({ message: "Failed to change password" });

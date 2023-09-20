@@ -54,7 +54,7 @@ const SessionSchema = new mongoose_1.Schema({
     history: [HistorySchema],
     breaks: { type: Number, default: 0 },
     timeSpentOnBreaks: { type: Number, default: 0 },
-});
+}, { timestamps: true });
 const TaskSchema = new mongoose_1.Schema({
     name: {
         type: String,
@@ -74,7 +74,7 @@ const TaskSchema = new mongoose_1.Schema({
     slowestLap: { type: Number, default: 0 },
     breaks: { type: Number, default: 0 },
     timeSpentOnBreaks: { type: Number, default: 0 },
-});
+}, { timestamps: true });
 const AnalyticsSchema = new mongoose_1.Schema({
     dailyDuration: Number,
     weeklyDuration: Number,
@@ -94,6 +94,7 @@ const userSchema = new mongoose_1.Schema({
     username: { type: String },
     photo: { type: String },
     registrationTokens: [{ type: String }],
+    subscription: { type: String },
     emailVerified: { type: Boolean, default: false },
     moodmotifData: {
         mood: { type: String },

@@ -20,4 +20,5 @@ router.post("/confirm-otp", userController_1.userController.confirmOtp);
 router.post("/change-password", userController_1.userController.changePassword);
 router.post("/set-new-password", userController_1.userController.setNewPassword);
 router.post("/refresh-token", userController_1.userController.refreshToken);
+router.get("/get-subscription", userController_1.userController.getSubscription);
 exports.default = router;

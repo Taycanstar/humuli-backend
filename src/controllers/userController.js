@@ -59,6 +59,7 @@ exports.userController = {
                 birthday,
                 productsUsed: [productType],
                 refreshTokens: [],
+                subscription: "basic",
             };
             switch (productType) {
                 case "Moodmotif":
@@ -416,6 +417,20 @@ exports.userController = {
         }
         catch (error) {
             console.error("Failed to change password", JSON.stringify(error, null, 2));
+            res.status(500).send({ message: "Failed to change password" });
+        }
+    }),
+    getSubscription: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        var _d;
+        const userId = (_d = req === null || req === void 0 ? void 0 : req.user) === null || _d === void 0 ? void 0 : _d._id;
+        try {
+            let user = yield User_1.default.findById(userId);
+            if (!user || !user.subscription)
+                return res.status(400).json({ message: "User or user data not found" });
+            res.status(200).send(user.subscription);
+        }
+        catch (error) {
+            console.error("Failed to fetch subscription ", JSON.stringify(error, null, 2));
             res.status(500).send({ message: "Failed to change password" });
         }
     }),
