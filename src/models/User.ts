@@ -96,6 +96,7 @@ interface IUser extends Document {
   productsUsed: string[];
   _id?: Types.ObjectId;
   refreshTokens?: string[];
+  createdAt?: Date;
 }
 
 const userSchema = new Schema<IUser>(

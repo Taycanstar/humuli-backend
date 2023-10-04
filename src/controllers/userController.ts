@@ -82,31 +82,32 @@ export const userController = {
       });
       await confirmation.save();
 
-      const emailBody = `To continue setting up your Humuli account, please click the following link to confirm your email: ${process.env.FRONTEND_URL}/auth/onboarding/details?token=${confirmationToken}`;
+      const emailBody = `To continue setting up your Maxticker account, please click the following link to confirm your email: ${process.env.FRONTEND_URL}/auth/onboarding/details?token=${confirmationToken}`;
       await sendEmail({
         email: email,
-        subject: "Humuli - Verify your email",
+        subject: "Maxticker - Verify your email",
         message: emailBody,
       });
 
       const token = jwt.sign(
         { _id: newUser._id },
         process.env.SECRET as string,
-        { expiresIn: "1h" }
+        { expiresIn: "3650d" }
       );
 
-      const refreshToken = jwt.sign(
-        { _id: newUser._id },
-        process.env.REFRESH_SECRET as string,
-        { expiresIn: "365d" }
-      );
+      // const refreshToken = jwt.sign(
+      //   { _id: newUser._id },
+      //   process.env.REFRESH_SECRET as string,
+      //   { expiresIn: "365d" }
+      // );
 
-      newUser.refreshTokens?.push(refreshToken);
+      // newUser.refreshTokens?.push(refreshToken);
       await newUser.save();
 
       res.status(200).json({
         token,
-        refreshToken,
+        // refreshToken,
+        createdAt: newUser.createdAt,
         message: "User created and authenticated successfully",
       });
     } catch (error: any) {
@@ -123,7 +124,7 @@ export const userController = {
     const MAX_REFRESH_TOKENS = 5; // Set your desired limit
 
     try {
-      let user = await User.findOne({ email });
+      let user = (await User.findOne({ email })) as IUser;
       if (!user) {
         return res.status(400).json({ message: "User doesn't exist" });
       }
@@ -152,16 +153,16 @@ export const userController = {
       }
 
       const token = jwt.sign({ _id: user._id }, process.env.SECRET as string, {
-        expiresIn: "1h",
+        expiresIn: "3650d",
       });
 
-      const refreshToken = jwt.sign(
-        { _id: user._id },
-        process.env.REFRESH_SECRET as string,
-        {
-          expiresIn: "365d",
-        }
-      );
+      // const refreshToken = jwt.sign(
+      //   { _id: user._id },
+      //   process.env.REFRESH_SECRET as string,
+      //   {
+      //     expiresIn: "365d",
+      //   }
+      // );
 
       // Limit the number of refresh tokens
       if (
@@ -170,16 +171,21 @@ export const userController = {
       ) {
         user.refreshTokens.shift(); // Remove the oldest token
       }
-      user.refreshTokens?.push(refreshToken);
+      // user.refreshTokens?.push(refreshToken);
 
       await user.save();
 
-      return res.status(200).json({ token, refreshToken });
+      return res.status(200).json({
+        token,
+        createdAt: user.createdAt,
+        // , refreshToken
+      });
     } catch (error) {
       console.log(error);
       return res.status(500).json({ message: "Server error" });
     }
   },
+
   refreshToken: async (req: Request, res: Response) => {
     const { refreshToken } = req.body;
 
@@ -299,7 +305,7 @@ export const userController = {
     await confirmation.save();
 
     // Send the confirmation email
-    const emailBody = `To continue setting up your Humuli account, please click the following link to confirm your email: ${process.env.FRONTEND_URL}/onboarding/details?token=${confirmationToken}&email=${email}&hashedPassword=${hashedPassword}`;
+    const emailBody = `To continue setting up your Maxticker account, please click the following link to confirm your email: ${process.env.FRONTEND_URL}/onboarding/details?token=${confirmationToken}&email=${email}&hashedPassword=${hashedPassword}`;
 
     try {
       await sendEmail({
@@ -384,11 +390,11 @@ export const userController = {
       await confirmation.save();
 
       // Send the OTP email
-      const emailBody = `Your Humuli one-time password (OTP) is: <b>${otp}</b>`;
+      const emailBody = `Your Maxticker one-time password (OTP) is: <b>${otp}</b>`;
 
       await sendEmail({
         email: email,
-        subject: "Humuli - Reset your password",
+        subject: "Maxticker - Reset your password",
         message: emailBody,
       });
 

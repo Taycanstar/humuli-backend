@@ -17,12 +17,12 @@ const sendEmail = (options) => __awaiter(void 0, void 0, void 0, function* () {
     // Send an email:
     var client = new postmark.ServerClient(api);
     client.sendEmail({
-        From: "noreply@humuli.com",
+        From: "noreply@maxticker.com",
         To: options.email,
         Subject: options.subject,
         HtmlBody: options.message,
         TextBody: options.message,
-        MessageStream: "email-verification",
+        MessageStream: "onboarding",
     });
 });
 exports.default = sendEmail;

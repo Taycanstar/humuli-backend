@@ -5,9 +5,9 @@ import twilio from "twilio";
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
-const accountSid = "AC2fd7cab6ba937e8385a3e16101551271";
+const accountSid = "AC19b6c353cf189d17546df9b1e701f384";
 const authToken: string | undefined = process.env.TWILIO_AUTH_TOKEN;
-const verifySid = "VA79d86b957d5a71f27d7b1da9e01e2f81";
+const verifySid = "VAd28020f6071a8321695bba3698575001";
 const client = twilio(accountSid, authToken);
 
 export const sendVerificationCode = (number: string) => {

@@ -41,7 +41,6 @@ exports.userController = {
         }
     }),
     signup: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a;
         const { email, password, firstName, lastName, birthday, phoneNumber, productType, } = req.body;
         try {
             // Check if user already exists
@@ -79,19 +78,24 @@ exports.userController = {
                 confirmationToken,
             });
             yield confirmation.save();
-            const emailBody = `To continue setting up your Humuli account, please click the following link to confirm your email: ${process.env.FRONTEND_URL}/auth/onboarding/details?token=${confirmationToken}`;
+            const emailBody = `To continue setting up your Maxticker account, please click the following link to confirm your email: ${process.env.FRONTEND_URL}/auth/onboarding/details?token=${confirmationToken}`;
             yield (0, email_1.default)({
                 email: email,
-                subject: "Humuli - Verify your email",
+                subject: "Maxticker - Verify your email",
                 message: emailBody,
             });
-            const token = jwt.sign({ _id: newUser._id }, process.env.SECRET, { expiresIn: "1h" });
-            const refreshToken = jwt.sign({ _id: newUser._id }, process.env.REFRESH_SECRET, { expiresIn: "365d" });
-            (_a = newUser.refreshTokens) === null || _a === void 0 ? void 0 : _a.push(refreshToken);
+            const token = jwt.sign({ _id: newUser._id }, process.env.SECRET, { expiresIn: "3650d" });
+            // const refreshToken = jwt.sign(
+            //   { _id: newUser._id },
+            //   process.env.REFRESH_SECRET as string,
+            //   { expiresIn: "365d" }
+            // );
+            // newUser.refreshTokens?.push(refreshToken);
             yield newUser.save();
             res.status(200).json({
                 token,
-                refreshToken,
+                // refreshToken,
+                createdAt: newUser.createdAt,
                 message: "User created and authenticated successfully",
             });
         }
@@ -103,11 +107,10 @@ exports.userController = {
         }
     }),
     login: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-        var _b;
         const { email, password, registrationToken, productType } = req.body;
         const MAX_REFRESH_TOKENS = 5; // Set your desired limit
         try {
-            let user = yield User_1.default.findOne({ email });
+            let user = (yield User_1.default.findOne({ email }));
             if (!user) {
                 return res.status(400).json({ message: "User doesn't exist" });
             }
@@ -130,19 +133,27 @@ exports.userController = {
                 yield user.save();
             }
             const token = jwt.sign({ _id: user._id }, process.env.SECRET, {
-                expiresIn: "1h",
+                expiresIn: "3650d",
             });
-            const refreshToken = jwt.sign({ _id: user._id }, process.env.REFRESH_SECRET, {
-                expiresIn: "365d",
-            });
+            // const refreshToken = jwt.sign(
+            //   { _id: user._id },
+            //   process.env.REFRESH_SECRET as string,
+            //   {
+            //     expiresIn: "365d",
+            //   }
+            // );
             // Limit the number of refresh tokens
             if (user.refreshTokens &&
                 user.refreshTokens.length >= MAX_REFRESH_TOKENS) {
                 user.refreshTokens.shift(); // Remove the oldest token
             }
-            (_b = user.refreshTokens) === null || _b === void 0 ? void 0 : _b.push(refreshToken);
+            // user.refreshTokens?.push(refreshToken);
             yield user.save();
-            return res.status(200).json({ token, refreshToken });
+            return res.status(200).json({
+                token,
+                createdAt: user.createdAt,
+                // , refreshToken
+            });
         }
         catch (error) {
             console.log(error);
@@ -150,7 +161,7 @@ exports.userController = {
         }
     }),
     refreshToken: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-        var _c;
+        var _a;
         const { refreshToken } = req.body;
         if (!refreshToken) {
             return res.status(400).json({ message: "Refresh token is required" });
@@ -163,7 +174,7 @@ exports.userController = {
             return res.status(401).json({ message: "Invalid refresh token" });
         }
         const user = yield User_1.default.findById(decoded._id);
-        if (!user || !((_c = user.refreshTokens) === null || _c === void 0 ? void 0 : _c.includes(refreshToken))) {
+        if (!user || !((_a = user.refreshTokens) === null || _a === void 0 ? void 0 : _a.includes(refreshToken))) {
             return res.status(401).json({ message: "Invalid refresh token" });
         }
         const newAccessToken = jwt.sign({ _id: user._id }, process.env.SECRET, {
@@ -249,7 +260,7 @@ exports.userController = {
         });
         yield confirmation.save();
         // Send the confirmation email
-        const emailBody = `To continue setting up your Humuli account, please click the following link to confirm your email: ${process.env.FRONTEND_URL}/onboarding/details?token=${confirmationToken}&email=${email}&hashedPassword=${hashedPassword}`;
+        const emailBody = `To continue setting up your Maxticker account, please click the following link to confirm your email: ${process.env.FRONTEND_URL}/onboarding/details?token=${confirmationToken}&email=${email}&hashedPassword=${hashedPassword}`;
         try {
             yield (0, email_1.default)({
                 email: email,
@@ -319,10 +330,10 @@ exports.userController = {
             });
             yield confirmation.save();
             // Send the OTP email
-            const emailBody = `Your Humuli one-time password (OTP) is: <b>${otp}</b>`;
+            const emailBody = `Your Maxticker one-time password (OTP) is: <b>${otp}</b>`;
             yield (0, email_1.default)({
                 email: email,
-                subject: "Humuli - Reset your password",
+                subject: "Maxticker - Reset your password",
                 message: emailBody,
             });
             res.status(200).send({ message: "OTP sent. Please check your email." });
@@ -421,8 +432,8 @@ exports.userController = {
         }
     }),
     getSubscription: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-        var _d;
-        const userId = (_d = req === null || req === void 0 ? void 0 : req.user) === null || _d === void 0 ? void 0 : _d._id;
+        var _b;
+        const userId = (_b = req === null || req === void 0 ? void 0 : req.user) === null || _b === void 0 ? void 0 : _b._id;
         try {
             let user = yield User_1.default.findById(userId);
             if (!user || !user.subscription)
