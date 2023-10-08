@@ -17,5 +17,8 @@ router.post("/change-password", userController.changePassword);
 router.post("/set-new-password", userController.setNewPassword);
 router.post("/refresh-token", userController.refreshToken);
 router.get("/get-subscription", userController.getSubscription);
+router.put("/edit-profile/:id", userController.editProfile);
+router.put("/change-email/:id", userController.changeEmail);
+router.get("/verify-email", userController.verifyEmail);
 
 export default router;

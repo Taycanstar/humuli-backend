@@ -93,6 +93,7 @@ interface IUser extends Document {
     history: any[];
     analytics: any;
   };
+  emailVerificationToken?: string;
   productsUsed: string[];
   _id?: Types.ObjectId;
   refreshTokens?: string[];
@@ -128,6 +129,7 @@ const userSchema = new Schema<IUser>(
       history: [HistorySchema],
       analytics: AnalyticsSchema,
     },
+    emailVerificationToken: { type: String },
     productsUsed: [{ type: String }],
   },
   { timestamps: true }

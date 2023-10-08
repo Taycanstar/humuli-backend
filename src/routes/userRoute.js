@@ -21,4 +21,7 @@ router.post("/change-password", userController_1.userController.changePassword);
 router.post("/set-new-password", userController_1.userController.setNewPassword);
 router.post("/refresh-token", userController_1.userController.refreshToken);
 router.get("/get-subscription", userController_1.userController.getSubscription);
+router.put("/edit-profile/:id", userController_1.userController.editProfile);
+router.put("/change-email/:id", userController_1.userController.changeEmail);
+router.get("/verify-email", userController_1.userController.verifyEmail);
 exports.default = router;

@@ -47,6 +47,8 @@ export const userController = {
         return res.status(400).json({ message: "Email already registered" });
       }
 
+      const emailVerificationToken = crypto.randomBytes(20).toString("hex");
+
       const hashedPassword = await bcrypt.hash(password, 10);
 
       const userData: any = {
@@ -58,7 +60,8 @@ export const userController = {
         birthday,
         productsUsed: [productType],
         refreshTokens: [],
-        subscription: "basic",
+        subscription: "standard",
+        emailVerificationToken,
       };
 
       switch (productType) {
@@ -82,7 +85,8 @@ export const userController = {
       });
       await confirmation.save();
 
-      const emailBody = `To continue setting up your Maxticker account, please click the following link to confirm your email: ${process.env.FRONTEND_URL}/auth/onboarding/details?token=${confirmationToken}`;
+      const emailBody = `To verify your new email, please click the following link: ${process.env.SERVER_URL}/u/verify-email?token=${emailVerificationToken}`;
+
       await sendEmail({
         email: email,
         subject: "Maxticker - Verify your email",
@@ -95,19 +99,12 @@ export const userController = {
         { expiresIn: "3650d" }
       );
 
-      // const refreshToken = jwt.sign(
-      //   { _id: newUser._id },
-      //   process.env.REFRESH_SECRET as string,
-      //   { expiresIn: "365d" }
-      // );
-
-      // newUser.refreshTokens?.push(refreshToken);
       await newUser.save();
 
       res.status(200).json({
         token,
-        // refreshToken,
         createdAt: newUser.createdAt,
+        user: newUser,
         message: "User created and authenticated successfully",
       });
     } catch (error: any) {
@@ -178,6 +175,7 @@ export const userController = {
       return res.status(200).json({
         token,
         createdAt: user.createdAt,
+        user: user,
         // , refreshToken
       });
     } catch (error) {
@@ -455,12 +453,12 @@ export const userController = {
     await confirmation.save();
 
     // Send the confirmation email
-    const emailBody = `To continue setting up your Qubemind account, please click the following link to confirm your email: ${process.env.FRONTEND_URL}/onboarding/details?token=${confirmationToken}&email=${email}&hashedPassword=${hashedPassword}`;
+    const emailBody = `To continue setting up your Maxticker account, please click the following link to confirm your email: ${process.env.FRONTEND_URL}/onboarding/details?token=${confirmationToken}&email=${email}&hashedPassword=${hashedPassword}`;
 
     try {
       await sendEmail({
         email: email,
-        subject: "Qubemind - Verify your email",
+        subject: "Maxticker - Verify your email",
         message: emailBody,
       });
 
@@ -522,6 +520,7 @@ export const userController = {
       res.status(500).send({ message: "Failed to change password" });
     }
   },
+
   getSubscription: async (req: Request, res: Response) => {
     const userId = (req?.user as IUser)?._id;
 
@@ -539,5 +538,101 @@ export const userController = {
       );
       res.status(500).send({ message: "Failed to change password" });
     }
+  },
+
+  editProfile: async (req: Request, res: Response) => {
+    const { firstName, lastName } = req.body;
+
+    try {
+      const user = await User.findByIdAndUpdate(
+        req.params.id,
+        {
+          firstName,
+          lastName,
+        },
+        { new: true }
+      );
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      res.status(201).send({ message: "Edit successfully." });
+    } catch (error) {
+      console.error("Failed to edit profile", JSON.stringify(error, null, 2));
+      res.status(500).send({ message: "Failed to edit profile" });
+    }
+  },
+
+  changeEmail: async (req: Request, res: Response) => {
+    const { email } = req.body;
+    const id = req.params.id;
+
+    try {
+      // Check if the new email is already in use
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return res.status(400).json({ message: "Email already in use" });
+      }
+
+      // Generate a verification token
+      const emailVerificationToken = crypto.randomBytes(20).toString("hex");
+
+      // Update the user's document with the new email and verification token
+      // But don't set the email as verified yet
+      const user = await User.findByIdAndUpdate(
+        id,
+        {
+          email: email, // Temporary field to store the new email
+          emailVerificationToken,
+          emailVerified: false,
+        },
+        { new: true }
+      );
+
+      // Send the verification email
+      const emailBody = `To verify your new email, please click the following link: ${process.env.SERVER_URL}/u/verify-email?token=${emailVerificationToken}`;
+      await sendEmail({
+        email: email,
+        subject: "Maxticker - Verify your new email",
+        message: emailBody,
+      });
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      res.status(201).send({
+        message:
+          "Verification email sent. Please check your new email to confirm the change.",
+      });
+    } catch (error) {
+      console.error("Failed to change email", JSON.stringify(error, null, 2));
+      res.status(500).send({ message: "Failed to change email" });
+    }
+  },
+
+  verifyEmail: async (req: Request, res: Response) => {
+    const token = req.query.token;
+
+    if (!token) {
+      return res.status(400).send("Token is required.");
+    }
+
+    // Find a user with the matching token
+    const user = await User.findOne({ emailVerificationToken: token });
+
+    if (!user) {
+      return res
+        .status(400)
+        .send("Invalid verification link or token has expired.");
+    }
+
+    // Mark email as verified and clear the token
+    user.emailVerified = true;
+    user.emailVerificationToken = undefined; // Clear the token
+    await user.save();
+
+    res.send("Email verified successfully!");
   },
 };

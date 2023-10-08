@@ -109,6 +109,7 @@ const userSchema = new mongoose_1.Schema({
         history: [HistorySchema],
         analytics: AnalyticsSchema,
     },
+    emailVerificationToken: { type: String },
     productsUsed: [{ type: String }],
 }, { timestamps: true });
 function arrayLimit(val) {
