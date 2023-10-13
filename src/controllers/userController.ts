@@ -640,7 +640,7 @@ export const userController = {
     const { oldPassword, password } = req.body;
     const id = req.params.id;
     console.log("Received oldPassword (plaintext):", oldPassword);
-    console.log("body", req.body);
+    console.log("body ", req.body);
     try {
       const user = await User.findById(id);
       console.log("Stored password (hashed):", user?.password);
