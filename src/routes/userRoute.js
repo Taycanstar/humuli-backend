@@ -24,4 +24,5 @@ router.get("/get-subscription", userController_1.userController.getSubscription)
 router.put("/edit-profile/:id", userController_1.userController.editProfile);
 router.put("/change-email/:id", userController_1.userController.changeEmail);
 router.get("/verify-email", userController_1.userController.verifyEmail);
+router.put("/change-profile-password/:id", userController_1.userController.changeProfilePassword);
 exports.default = router;

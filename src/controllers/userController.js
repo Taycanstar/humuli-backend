@@ -514,4 +514,29 @@ exports.userController = {
         yield user.save();
         res.send("Email verified successfully!");
     }),
+    changeProfilePassword: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        const { oldPassword, password } = req.body;
+        const id = req.params.id;
+        console.log("Received oldPassword (plaintext):", oldPassword);
+        console.log("body", req.body);
+        try {
+            const user = yield User_1.default.findById(id);
+            console.log("Stored password (hashed):", user === null || user === void 0 ? void 0 : user.password);
+            if (!user) {
+                return res.status(404).json({ message: "User not found" });
+            }
+            // Check if oldPassword matches the user's current password
+            const isMatch = yield bcrypt.compare(oldPassword, user.password);
+            if (!isMatch) {
+                return res.status(400).json({ message: "Incorrect password" });
+            }
+            const hashedPassword = yield bcrypt.hash(password, 10);
+            yield User_1.default.findByIdAndUpdate(id, { password: hashedPassword }, { new: true });
+            res.status(201).send({ message: "Password changed successfully." });
+        }
+        catch (error) {
+            console.error("Failed to change password", JSON.stringify(error, null, 2));
+            res.status(500).send({ message: "Failed to change password" });
+        }
+    }),
 };
