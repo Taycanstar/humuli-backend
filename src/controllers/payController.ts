@@ -1,44 +1,83 @@
 import { Request, Response } from "express";
-import User, { IUser } from "../models/User";
-import Confirmation from "../models/Confirmation";
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
-import crypto from "crypto";
-import sendEmail from "../utils/email";
+import { Stripe } from "stripe";
 import dotenv from "dotenv";
 import path from "path";
-import { v4 as uuidv4 } from "uuid";
+import User, { IUser } from "../models/User";
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
+const stripeInstance = new Stripe(process.env.STRIPE_KEY_TEST!, {
+  apiVersion: "2023-08-16",
+});
 
-const stripe = require("stripe")(process.env.STRIPE_KEY_TEST);
-const monthlyPriceId = process.env.MONTHLY_PRICE_ID;
-const yearlyPriceId = process.env.YEARLY_PRICE_ID;
-
-const url = "http://humuli.com";
+interface StripeSession {
+  id: string;
+  object: string;
+  created: number;
+  payment_status: string;
+  metadata: {
+    userId: string;
+    [key: string]: any;
+  };
+  // ... other fields you expect to receive from Stripe
+}
 
 export const payController = {
-  createCheckoutSession: async (req: Request, res: Response) => {
-    const email = (req?.user as IUser)?.email;
-    const { priceId } = req.body;
-    try {
-      const session = await stripe.checkout.sessions.create({
-        mode: "subscription",
-        line_items: [
-          {
-            price: priceId,
-            // For metered billing, do not pass quantity
-            quantity: 1,
-          },
-        ],
-        // {CHECKOUT_SESSION_ID} is a string literal; do not change it!
-        // the actual Session ID is returned in the query parameter when your customer
-        // is redirected to the success page.
-        success_url: "myapp://success.html?session_id={CHECKOUT_SESSION_ID}",
-        cancel_url: "myapp:///canceled.html",
-      });
-    } catch (error) {
-      console.log(error);
-    }
+  webhookHandler: async (req: Request, res: Response) => {
+    let data = "";
+
+    req.setEncoding("utf8");
+    req.on("data", (chunk) => {
+      data += chunk;
+    });
+
+    req.on("end", async () => {
+      const sigHeader = req.headers["stripe-signature"] as string;
+      const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+      if (!sigHeader) {
+        res.status(400).send(`Webhook Error: Invalid signature header`);
+        return;
+      }
+
+      let event;
+
+      try {
+        event = stripeInstance.webhooks.constructEvent(
+          data,
+          sigHeader,
+          endpointSecret!
+        );
+      } catch (err: any) {
+        res.status(400).send(`Webhook Error: ${err.message}`);
+        return;
+      }
+
+      console.log("✅ Success:", event.id);
+
+      if (event.type === "checkout.session.completed") {
+        const session = event.data.object as StripeSession;
+
+        // Assume user ID is stored in metadata.userId when the Stripe session was created
+        const userId = session.metadata.userId;
+
+        if (!userId) {
+          res.status(400).send("Webhook Error: User ID not found");
+          return;
+        }
+
+        const user = await User.findByIdAndUpdate(
+          userId,
+          { subscription: "plus" },
+          { new: true }
+        );
+
+        res.status(200).send("Session was successful!");
+        return;
+      }
+
+      res.status(200);
+    });
   },
 };
+
+// Your route definition remains the same

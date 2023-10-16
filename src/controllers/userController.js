@@ -518,7 +518,7 @@ exports.userController = {
         const { oldPassword, password } = req.body;
         const id = req.params.id;
         console.log("Received oldPassword (plaintext):", oldPassword);
-        console.log("body", req.body);
+        console.log("body ", req.body);
         try {
             const user = yield User_1.default.findById(id);
             console.log("Stored password (hashed):", user === null || user === void 0 ? void 0 : user.password);
