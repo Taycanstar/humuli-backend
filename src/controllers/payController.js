@@ -24,6 +24,7 @@ const stripeInstance = new stripe_1.Stripe(process.env.STRIPE_KEY_TEST, {
 exports.payController = {
     createCheckoutSession: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const userId = req.body.userId; // Assume userId is sent in the request body
+        console.log("createCheckoutSession called with body:", req.body);
         if (!userId) {
             res.status(400).send("User ID is required");
             return;

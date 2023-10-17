@@ -24,6 +24,7 @@ interface StripeSession {
 export const payController = {
   createCheckoutSession: async (req: Request, res: Response) => {
     const userId = req.body.userId; // Assume userId is sent in the request body
+    console.log("createCheckoutSession called with body:", req.body);
     if (!userId) {
       res.status(400).send("User ID is required");
       return;
