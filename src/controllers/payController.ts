@@ -36,21 +36,21 @@ export const payController = {
         line_items: [
           {
             // Reference the Price ID from your Stripe Dashboard
-            price: "price_1Nn4GWIkJrKrc9Jwm5V62Jo3",
+            price: "price_1Nn4FIIkJrKrc9JwAfpAWwYp",
             quantity: 1,
           },
         ],
         mode: "subscription",
-        success_url: "your-app://success",
-        cancel_url: "your-app://cancel",
+        success_url: "https://your-app://success",
+        cancel_url: "https://your-app://cancel",
         metadata: {
           userId: userId, // Include userId in metadata
         },
       });
 
-      console.log(session, "session");
+      console.log(session.id, "session");
 
-      res.json({ sessionId: session.id });
+      res.json({ sessionId: session.id, checkoutUrl: session.url });
     } catch (error: any) {
       res.status(500).send(error.message);
       console.log(error, "error here");
