@@ -46,6 +46,7 @@ exports.payController = {
                     userId: userId, // Include userId in metadata
                 },
             });
+            console.log(session, "session");
             res.json({ sessionId: session.id });
         }
         catch (error) {

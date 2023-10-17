@@ -48,6 +48,8 @@ export const payController = {
         },
       });
 
+      console.log(session, "session");
+
       res.json({ sessionId: session.id });
     } catch (error: any) {
       res.status(500).send(error.message);
