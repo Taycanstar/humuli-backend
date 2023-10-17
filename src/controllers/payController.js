@@ -22,6 +22,35 @@ const stripeInstance = new stripe_1.Stripe(process.env.STRIPE_KEY_TEST, {
     apiVersion: "2023-08-16",
 });
 exports.payController = {
+    createCheckoutSession: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        const userId = req.body.userId; // Assume userId is sent in the request body
+        if (!userId) {
+            res.status(400).send("User ID is required");
+            return;
+        }
+        try {
+            const session = yield stripeInstance.checkout.sessions.create({
+                payment_method_types: ["card"],
+                line_items: [
+                    {
+                        // Reference the Price ID from your Stripe Dashboard
+                        price: "price_1Nn4GWIkJrKrc9Jwm5V62Jo3",
+                        quantity: 1,
+                    },
+                ],
+                mode: "subscription",
+                success_url: "your-app://success",
+                cancel_url: "your-app://cancel",
+                metadata: {
+                    userId: userId, // Include userId in metadata
+                },
+            });
+            res.json({ sessionId: session.id });
+        }
+        catch (error) {
+            res.status(500).send(error.message);
+        }
+    }),
     webhookHandler: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         let data = "";
         req.setEncoding("utf8");
@@ -52,12 +81,17 @@ exports.payController = {
                     res.status(400).send("Webhook Error: User ID not found");
                     return;
                 }
-                const user = yield User_1.default.findByIdAndUpdate(userId, { subscription: "plus" }, { new: true });
-                res.status(200).send("Session was successful!");
+                try {
+                    const user = yield User_1.default.findByIdAndUpdate(userId, { subscription: "plus" }, { new: true });
+                    res.status(200).send("Session was successful!");
+                }
+                catch (updateErr) {
+                    res.status(500).send(`Database Update Error: ${updateErr.message}`);
+                }
                 return;
             }
-            res.status(200);
+            // Optionally handle other event types
+            res.status(200).send("Unhandled event type");
         }));
     }),
 };
-// Your route definition remains the same

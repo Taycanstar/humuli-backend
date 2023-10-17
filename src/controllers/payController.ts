@@ -22,6 +22,37 @@ interface StripeSession {
 }
 
 export const payController = {
+  createCheckoutSession: async (req: Request, res: Response) => {
+    const userId = req.body.userId; // Assume userId is sent in the request body
+    if (!userId) {
+      res.status(400).send("User ID is required");
+      return;
+    }
+
+    try {
+      const session = await stripeInstance.checkout.sessions.create({
+        payment_method_types: ["card"],
+        line_items: [
+          {
+            // Reference the Price ID from your Stripe Dashboard
+            price: "price_1Nn4GWIkJrKrc9Jwm5V62Jo3",
+            quantity: 1,
+          },
+        ],
+        mode: "subscription",
+        success_url: "your-app://success",
+        cancel_url: "your-app://cancel",
+        metadata: {
+          userId: userId, // Include userId in metadata
+        },
+      });
+
+      res.json({ sessionId: session.id });
+    } catch (error: any) {
+      res.status(500).send(error.message);
+    }
+  },
+
   webhookHandler: async (req: Request, res: Response) => {
     let data = "";
 
@@ -65,19 +96,22 @@ export const payController = {
           return;
         }
 
-        const user = await User.findByIdAndUpdate(
-          userId,
-          { subscription: "plus" },
-          { new: true }
-        );
+        try {
+          const user = await User.findByIdAndUpdate(
+            userId,
+            { subscription: "plus" },
+            { new: true }
+          );
+          res.status(200).send("Session was successful!");
+        } catch (updateErr: any) {
+          res.status(500).send(`Database Update Error: ${updateErr.message}`);
+        }
 
-        res.status(200).send("Session was successful!");
         return;
       }
 
-      res.status(200);
+      // Optionally handle other event types
+      res.status(200).send("Unhandled event type");
     });
   },
 };
-
-// Your route definition remains the same
