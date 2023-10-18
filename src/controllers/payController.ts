@@ -41,8 +41,8 @@ export const payController = {
           },
         ],
         mode: "subscription",
-        success_url: "https://your-app://success",
-        cancel_url: "https://your-app://cancel",
+        success_url: `${req.protocol}://${req.get("host")}/success`,
+        cancel_url: `${req.protocol}://${req.get("host")}/cancel`,
         metadata: {
           userId: userId, // Include userId in metadata
         },
