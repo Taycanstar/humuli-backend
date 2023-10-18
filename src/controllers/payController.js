@@ -79,15 +79,19 @@ exports.payController = {
                 const session = event.data.object;
                 // Assume user ID is stored in metadata.userId when the Stripe session was created
                 const userId = session.metadata.userId;
+                console.log("Event received:", event);
+                console.log("User ID:", userId);
                 if (!userId) {
                     res.status(400).send("Webhook Error: User ID not found");
                     return;
                 }
                 try {
                     const user = yield User_1.default.findByIdAndUpdate(userId, { subscription: "plus" }, { new: true });
+                    console.log("User update result:", user);
                     res.status(200).send("Session was successful!");
                 }
                 catch (updateErr) {
+                    console.error("Database Update Error:", updateErr);
                     res.status(500).send(`Database Update Error: ${updateErr.message}`);
                 }
                 return;
