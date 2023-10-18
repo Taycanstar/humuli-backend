@@ -46,7 +46,6 @@ exports.payController = {
                     userId: userId, // Include userId in metadata
                 },
             });
-            console.log(session.id, "session");
             res.json({ sessionId: session.id, checkoutUrl: session.url });
         }
         catch (error) {
@@ -62,7 +61,7 @@ exports.payController = {
         });
         req.on("end", () => __awaiter(void 0, void 0, void 0, function* () {
             const sigHeader = req.headers["stripe-signature"];
-            const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+            const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET_TEST;
             if (!sigHeader) {
                 res.status(400).send(`Webhook Error: Invalid signature header`);
                 return;

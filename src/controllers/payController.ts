@@ -65,7 +65,7 @@ export const payController = {
 
     req.on("end", async () => {
       const sigHeader = req.headers["stripe-signature"] as string;
-      const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+      const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET_TEST;
 
       if (!sigHeader) {
         res.status(400).send(`Webhook Error: Invalid signature header`);
