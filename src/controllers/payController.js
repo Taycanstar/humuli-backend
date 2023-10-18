@@ -40,7 +40,7 @@ exports.payController = {
                     },
                 ],
                 mode: "subscription",
-                success_url: `https://maxticker-55df64f66a64.herokuapp.com/success.html`,
+                success_url: `https://maxticker-55df64f66a64.herokuapp.com/public/success`,
                 cancel_url: `${req.protocol}://${req.get("host")}/cancel`,
                 metadata: {
                     userId: userId, // Include userId in metadata
