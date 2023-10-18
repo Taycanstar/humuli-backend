@@ -26,6 +26,10 @@ app.use("/api", apiRoute_1.default);
 app.post("/auth", authRoute_1.default);
 app.use("/task", taskRoute_1.default);
 app.use("/pay", payRoute_1.default);
+// Route to serve the success page
+app.get("/success", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "success.html"));
+});
 // Connect to MongoDB
 mongoose_1.default
     .connect(uri)
