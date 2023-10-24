@@ -89,7 +89,7 @@ export const userController = {
 
       await sendEmail({
         email: email,
-        subject: "Maxticker - Verify your email",
+        subject: "Maxticker - Verify your email ",
         message: emailBody,
       });
 

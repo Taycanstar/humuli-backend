@@ -83,7 +83,7 @@ exports.userController = {
             const emailBody = `To verify your new email, please click the following link: ${process.env.SERVER_URL}/u/verify-email?token=${emailVerificationToken}`;
             yield (0, email_1.default)({
                 email: email,
-                subject: "Maxticker - Verify your email",
+                subject: "Maxticker - Verify your email ",
                 message: emailBody,
             });
             const token = jwt.sign({ _id: newUser._id }, process.env.SECRET, { expiresIn: "3650d" });
