@@ -1,4 +1,13 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -13,6 +22,7 @@ const payRoute_1 = __importDefault(require("./src/routes/payRoute"));
 const apiRoute_1 = __importDefault(require("./src/routes/apiRoute"));
 const path = require("path");
 const authRoute_1 = __importDefault(require("./src/routes/authRoute"));
+const User_1 = __importDefault(require("./src/models/User"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const port = Number(process.env.PORT) || 8000;
@@ -42,6 +52,43 @@ mongoose_1.default
 app.get("/", (req, res) => {
     res.send("Hello, world!");
 });
+app.post("/webhook", express_1.default.json({ type: "application/json" }), (request, response) => __awaiter(void 0, void 0, void 0, function* () {
+    const event = request.body;
+    try {
+        // Handle the event
+        switch (event.type) {
+            case "checkout.session.completed":
+                const checkoutSession = event.data.object;
+                if (checkoutSession.mode === "subscription") {
+                    const userId = checkoutSession.metadata.userId;
+                    if (!userId) {
+                        console.error("User ID is missing in metadata");
+                        return response
+                            .status(400)
+                            .send("Metadata is missing the user ID");
+                    }
+                    const user = yield User_1.default.findByIdAndUpdate(userId, { subscription: "plus" }, { new: true });
+                    if (!user) {
+                        console.error(`User not found for ID: ${userId}`);
+                        return response
+                            .status(404)
+                            .send(`User not found for ID: ${userId}`);
+                    }
+                    console.log(`User subscription updated to 'plus' for user ID: ${userId}`);
+                }
+                break;
+            // Handle other event types as needed
+            default:
+                console.log(`Unhandled event type ${event.type}`);
+        }
+        // Return a response to acknowledge receipt of the event
+        response.json({ received: true });
+    }
+    catch (error) {
+        console.error("Error in webhook handler:", error);
+        response.status(500).send("Internal Server Error");
+    }
+}));
 app.listen(port, () => {
     console.log(`Server is running at http://localhost:${port}`);
 });
