@@ -60,9 +60,11 @@ exports.payController = {
             data += chunk;
         });
         req.on("end", () => __awaiter(void 0, void 0, void 0, function* () {
+            var _a;
             const sigHeader = req.headers["stripe-signature"];
             const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET_TEST;
             if (!sigHeader) {
+                console.error("Webhook Error: Invalid signature header");
                 res.status(400).send(`Webhook Error: Invalid signature header`);
                 return;
             }
@@ -71,6 +73,7 @@ exports.payController = {
                 event = stripeInstance.webhooks.constructEvent(data, sigHeader, endpointSecret);
             }
             catch (err) {
+                console.error("Webhook Error:", err.message);
                 res.status(400).send(`Webhook Error: ${err.message}`);
                 return;
             }
@@ -78,15 +81,21 @@ exports.payController = {
             if (event.type === "checkout.session.completed") {
                 const session = event.data.object;
                 // Assume user ID is stored in metadata.userId when the Stripe session was created
-                const userId = session.metadata.userId;
+                const userId = (_a = session === null || session === void 0 ? void 0 : session.metadata) === null || _a === void 0 ? void 0 : _a.userId;
                 console.log("Event received:", event);
                 console.log("User ID:", userId);
                 if (!userId) {
+                    console.error("Webhook Error: User ID not found");
                     res.status(400).send("Webhook Error: User ID not found");
                     return;
                 }
                 try {
                     const user = yield User_1.default.findByIdAndUpdate(userId, { subscription: "plus" }, { new: true });
+                    if (!user) {
+                        console.error("User not found with ID:", userId);
+                        res.status(404).send("User not found");
+                        return;
+                    }
                     console.log("User update result:", user);
                     res.status(200).send("Session was successful!");
                 }
@@ -97,6 +106,7 @@ exports.payController = {
                 return;
             }
             // Optionally handle other event types
+            console.log("Unhandled event type");
             res.status(200).send("Unhandled event type");
         }));
     }),

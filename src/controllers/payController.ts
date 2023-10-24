@@ -68,6 +68,7 @@ export const payController = {
       const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET_TEST;
 
       if (!sigHeader) {
+        console.error("Webhook Error: Invalid signature header");
         res.status(400).send(`Webhook Error: Invalid signature header`);
         return;
       }
@@ -81,6 +82,7 @@ export const payController = {
           endpointSecret!
         );
       } catch (err: any) {
+        console.error("Webhook Error:", err.message);
         res.status(400).send(`Webhook Error: ${err.message}`);
         return;
       }
@@ -88,14 +90,15 @@ export const payController = {
       console.log("✅ Success:", event.id);
 
       if (event.type === "checkout.session.completed") {
-        const session = event.data.object as StripeSession;
+        const session = event.data.object as Stripe.Checkout.Session;
 
         // Assume user ID is stored in metadata.userId when the Stripe session was created
-        const userId = session.metadata.userId;
+        const userId = session?.metadata?.userId;
         console.log("Event received:", event);
         console.log("User ID:", userId);
 
         if (!userId) {
+          console.error("Webhook Error: User ID not found");
           res.status(400).send("Webhook Error: User ID not found");
           return;
         }
@@ -106,6 +109,11 @@ export const payController = {
             { subscription: "plus" },
             { new: true }
           );
+          if (!user) {
+            console.error("User not found with ID:", userId);
+            res.status(404).send("User not found");
+            return;
+          }
           console.log("User update result:", user);
           res.status(200).send("Session was successful!");
         } catch (updateErr: any) {
@@ -117,6 +125,7 @@ export const payController = {
       }
 
       // Optionally handle other event types
+      console.log("Unhandled event type");
       res.status(200).send("Unhandled event type");
     });
   },
