@@ -46,7 +46,7 @@ exports.userController = {
             // Check if user already exists
             const existingUser = yield User_1.default.findOne({ email });
             if (existingUser) {
-                return res.status(400).json({ message: "Email already registered" });
+                return res.status(400).json({ message: "Email already registered " });
             }
             const emailVerificationToken = crypto_1.default.randomBytes(20).toString("hex");
             const hashedPassword = yield bcrypt.hash(password, 10);
