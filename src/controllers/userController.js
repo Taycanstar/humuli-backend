@@ -439,7 +439,7 @@ exports.userController = {
         }
         catch (error) {
             console.error("Failed to fetch subscription ", JSON.stringify(error, null, 2));
-            res.status(500).send({ message: "Failed to fetch subscription" });
+            res.status(500).json({ message: "Failed to fetch subscription" }); // Change here to json
         }
     }),
     editProfile: (req, res) => __awaiter(void 0, void 0, void 0, function* () {

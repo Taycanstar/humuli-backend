@@ -520,7 +520,6 @@ export const userController = {
       res.status(500).send({ message: "Failed to change password" });
     }
   },
-
   getSubscription: async (req: Request, res: Response) => {
     const userId = (req?.user as IUser)?._id;
 
@@ -536,7 +535,7 @@ export const userController = {
         "Failed to fetch subscription ",
         JSON.stringify(error, null, 2)
       );
-      res.status(500).send({ message: "Failed to fetch subscription" });
+      res.status(500).json({ message: "Failed to fetch subscription" }); // Change here to json
     }
   },
 
