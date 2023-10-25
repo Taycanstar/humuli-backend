@@ -530,13 +530,13 @@ export const userController = {
       if (!user || !user.subscription)
         return res.status(400).json({ message: "User or user data not found" });
 
-      res.status(200).send(user.subscription);
+      res.status(200).json({ subscription: user.subscription });
     } catch (error) {
       console.error(
         "Failed to fetch subscription ",
         JSON.stringify(error, null, 2)
       );
-      res.status(500).send({ message: "Failed to change password" });
+      res.status(500).send({ message: "Failed to fetch subscription" });
     }
   },
 
