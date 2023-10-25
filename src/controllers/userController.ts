@@ -521,10 +521,13 @@ export const userController = {
     }
   },
   getSubscription: async (req: Request, res: Response) => {
-    const userId = (req?.user as IUser)?._id;
+    const userId = req.params.id;
+
+    console.log("Fetching subscription for user ID:", userId);
 
     try {
       let user = await User.findById(userId);
+      console.log("User found:", user);
 
       if (!user || !user.subscription)
         return res.status(400).json({ message: "User or user data not found" });
@@ -535,7 +538,7 @@ export const userController = {
         "Failed to fetch subscription ",
         JSON.stringify(error, null, 2)
       );
-      res.status(500).json({ message: "Failed to fetch subscription" }); // Change here to json
+      res.status(500).json({ message: "Failed to fetch subscription" });
     }
   },
 

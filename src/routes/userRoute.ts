@@ -1,5 +1,6 @@
 import express from "express";
 import { userController } from "../controllers/userController";
+import { requireLogin } from "../../maxticker/src/middleware/auth";
 const router = express.Router();
 
 router.post("/check-email-exists", userController.checkEmailExists);
@@ -16,7 +17,7 @@ router.post("/confirm-otp", userController.confirmOtp);
 router.post("/change-password", userController.changePassword);
 router.post("/set-new-password", userController.setNewPassword);
 router.post("/refresh-token", userController.refreshToken);
-router.get("/get-subscription", userController.getSubscription);
+router.get("/get-subscription/:id", userController.getSubscription);
 router.put("/edit-profile/:id", userController.editProfile);
 router.put("/change-email/:id", userController.changeEmail);
 router.get("/verify-email", userController.verifyEmail);

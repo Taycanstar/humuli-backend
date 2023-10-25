@@ -429,17 +429,18 @@ exports.userController = {
         }
     }),
     getSubscription: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-        var _b;
-        const userId = (_b = req === null || req === void 0 ? void 0 : req.user) === null || _b === void 0 ? void 0 : _b._id;
+        const userId = req.params.id;
+        console.log("Fetching subscription for user ID:", userId);
         try {
             let user = yield User_1.default.findById(userId);
+            console.log("User found:", user);
             if (!user || !user.subscription)
                 return res.status(400).json({ message: "User or user data not found" });
             res.status(200).json({ subscription: user.subscription });
         }
         catch (error) {
             console.error("Failed to fetch subscription ", JSON.stringify(error, null, 2));
-            res.status(500).json({ message: "Failed to fetch subscription" }); // Change here to json
+            res.status(500).json({ message: "Failed to fetch subscription" });
         }
     }),
     editProfile: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
