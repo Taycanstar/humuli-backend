@@ -32,7 +32,8 @@
     "passport-oauth2": "^1.7.0",
     "postmark": "^3.0.18",
     "stripe": "^13.4.0",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "ws": "^8.14.2"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.2",
@@ -48,6 +49,7 @@
     "@types/passport-oauth2": "^1.4.12",
     "@types/stripe": "^8.0.417",
     "@types/uuid": "^9.0.2",
+    "@types/ws": "^8.5.8",
     "ts-node": "^10.9.1",
     "typescript": "^5.1.3"
   }

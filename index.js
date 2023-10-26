@@ -23,9 +23,13 @@ const apiRoute_1 = __importDefault(require("./src/routes/apiRoute"));
 const path = require("path");
 const authRoute_1 = __importDefault(require("./src/routes/authRoute"));
 const User_1 = __importDefault(require("./src/models/User"));
+const http_1 = __importDefault(require("http"));
+const ws_1 = require("ws");
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const port = Number(process.env.PORT) || 8000;
+const server = http_1.default.createServer(app);
+const wss = new ws_1.Server({ server });
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
 const uri = process.env.DB_URI;
@@ -52,6 +56,24 @@ mongoose_1.default
 app.get("/", (req, res) => {
     res.send("Hello, world!");
 });
+// Store connections
+const connections = {};
+wss.on("connection", (ws, req) => {
+    const url = new URL(req.url, `http://${req.headers.host}`);
+    const userId = url.searchParams.get("userId");
+    if (userId) {
+        connections[userId] = ws;
+        console.log(`User ${userId} connected`);
+        ws.on("close", () => {
+            delete connections[userId];
+            console.log(`User ${userId} disconnected`);
+        });
+    }
+    else {
+        ws.close();
+        console.log("Connection closed due to missing userId");
+    }
+});
 app.post("/webhook", express_1.default.json({ type: "application/json" }), (request, response) => __awaiter(void 0, void 0, void 0, function* () {
     const event = request.body;
     try {
@@ -75,6 +97,18 @@ app.post("/webhook", express_1.default.json({ type: "application/json" }), (requ
                             .send(`User not found for ID: ${userId}`);
                     }
                     console.log(`User subscription updated to 'plus' for user ID: ${userId}`);
+                    // Notify frontend
+                    const ws = connections[userId];
+                    if (ws && ws.readyState === ws.OPEN) {
+                        ws.send(JSON.stringify({
+                            event: "subscription_updated",
+                            subscription: "plus",
+                        }));
+                        console.log(`Notification sent to user ${userId}`);
+                    }
+                    else {
+                        console.log(`User ${userId} is not connected or socket is not open`);
+                    }
                 }
                 break;
             // Handle other event types as needed
