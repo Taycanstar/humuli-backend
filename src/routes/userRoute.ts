@@ -1,6 +1,5 @@
 import express from "express";
 import { userController } from "../controllers/userController";
-import { requireLogin } from "../../maxticker/src/middleware/auth";
 const router = express.Router();
 
 router.post("/check-email-exists", userController.checkEmailExists);
