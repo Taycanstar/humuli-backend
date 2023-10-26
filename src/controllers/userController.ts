@@ -672,4 +672,30 @@ export const userController = {
       res.status(500).send({ message: "Failed to change password" });
     }
   },
+
+  cancelSubscription: async (req: Request, res: Response) => {
+    const id = req.params.id;
+
+    try {
+      const user = await User.findById(id);
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      await User.findByIdAndUpdate(
+        id,
+        { subscription: "standard" },
+        { new: true }
+      );
+
+      res.status(201).send({ message: "Subscription cancelled successfully." });
+    } catch (error) {
+      console.error(
+        "Failed to cancel subscription",
+        JSON.stringify(error, null, 2)
+      );
+      res.status(500).send({ message: "Failed to cancel subscription" });
+    }
+  },
 };

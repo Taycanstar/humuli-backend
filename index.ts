@@ -61,8 +61,21 @@ wss.on("connection", (ws, req) => {
   const url = new URL(req.url!, `http://${req.headers.host}`);
   const userId = url.searchParams.get("userId");
   if (userId) {
-    connections[userId] = ws;
+    // connections[userId] = ws;
     console.log(`User ${userId} connected`);
+
+    const ws = connections[userId];
+    if (ws && ws.readyState === ws.OPEN) {
+      ws.send(
+        JSON.stringify({
+          event: "subscription_updated",
+          subscription: "plus",
+        })
+      );
+      console.log(`Notification sent to user ${userId}`);
+    } else {
+      console.log(`User ${userId} is not connected or socket is not open`);
+    }
 
     ws.on("close", () => {
       delete connections[userId];
@@ -130,6 +143,48 @@ app.post(
 
           break;
         // Handle other event types as needed
+        case "invoice.payment_failed":
+          const invoice = event.data.object;
+          const userId = invoice.metadata.userId;
+
+          if (!userId) {
+            console.error("User ID is missing in metadata");
+            return response.status(400).send("Metadata is missing the user ID");
+          }
+
+          const user = await User.findByIdAndUpdate(
+            userId,
+            { subscription: "standard" },
+            { new: true }
+          );
+
+          if (!user) {
+            console.error(`User not found for ID: ${userId}`);
+            return response
+              .status(404)
+              .send(`User not found for ID: ${userId}`);
+          }
+
+          console.log(
+            `User subscription updated to 'standard' for user ID: ${userId}`
+          );
+          // Notify frontend (if needed)
+          const ws = connections[userId];
+          if (ws && ws.readyState === ws.OPEN) {
+            ws.send(
+              JSON.stringify({
+                event: "subscription_updated",
+                subscription: "standard",
+              })
+            );
+            console.log(`Notification sent to user ${userId}`);
+          } else {
+            console.log(
+              `User ${userId} is not connected or socket is not open`
+            );
+          }
+          break;
+
         default:
           console.log(`Unhandled event type ${event.type}`);
       }

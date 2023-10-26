@@ -24,5 +24,6 @@ router.put(
   "/change-profile-password/:id",
   userController.changeProfilePassword
 );
+router.put("/cancel-subscription/:id", userController.cancelSubscription);
 
 export default router;

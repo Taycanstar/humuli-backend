@@ -540,4 +540,19 @@ exports.userController = {
             res.status(500).send({ message: "Failed to change password" });
         }
     }),
+    cancelSubscription: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        const id = req.params.id;
+        try {
+            const user = yield User_1.default.findById(id);
+            if (!user) {
+                return res.status(404).json({ message: "User not found" });
+            }
+            yield User_1.default.findByIdAndUpdate(id, { subscription: "standard" }, { new: true });
+            res.status(201).send({ message: "Subscription cancelled successfully." });
+        }
+        catch (error) {
+            console.error("Failed to cancel subscription", JSON.stringify(error, null, 2));
+            res.status(500).send({ message: "Failed to cancel subscription" });
+        }
+    }),
 };
