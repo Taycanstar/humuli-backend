@@ -17,7 +17,7 @@ const stripe_1 = require("stripe");
 const dotenv_1 = __importDefault(require("dotenv"));
 const path_1 = __importDefault(require("path"));
 dotenv_1.default.config({ path: path_1.default.resolve(__dirname, "../../.env") });
-const stripeInstance = new stripe_1.Stripe(process.env.STRIPE_KEY_TEST, {
+const stripeInstance = new stripe_1.Stripe(process.env.STRIPE_KEY, {
     apiVersion: "2023-08-16",
 });
 exports.payController = {
@@ -35,13 +35,13 @@ exports.payController = {
                 line_items: [
                     {
                         // Reference the Price ID from your Stripe Dashboard
-                        // price:
-                        //   item === "monthly"
-                        //     ? "price_1Nn4GWIkJrKrc9Jwm5V62Jo3"
-                        //     : "price_1Nn4GWIkJrKrc9JwdAwumyfz",
                         price: item === "monthly"
-                            ? "price_1Nn4FIIkJrKrc9JwwJLnzruw"
-                            : "price_1Nn4FIIkJrKrc9JwAfpAWwYp",
+                            ? "price_1Nn4GWIkJrKrc9Jwm5V62Jo3"
+                            : "price_1Nn4GWIkJrKrc9JwdAwumyfz",
+                        //   price:
+                        //     item === "monthly"
+                        //       ? "price_1Nn4FIIkJrKrc9JwwJLnzruw"
+                        //       : "price_1Nn4FIIkJrKrc9JwAfpAWwYp",
                         quantity: 1,
                     },
                 ],

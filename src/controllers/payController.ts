@@ -5,7 +5,7 @@ import path from "path";
 import User, { IUser } from "../models/User";
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
-const stripeInstance = new Stripe(process.env.STRIPE_KEY_TEST!, {
+const stripeInstance = new Stripe(process.env.STRIPE_KEY!, {
   apiVersion: "2023-08-16",
 });
 
@@ -37,14 +37,14 @@ export const payController = {
         line_items: [
           {
             // Reference the Price ID from your Stripe Dashboard
-            // price:
-            //   item === "monthly"
-            //     ? "price_1Nn4GWIkJrKrc9Jwm5V62Jo3"
-            //     : "price_1Nn4GWIkJrKrc9JwdAwumyfz",
             price:
               item === "monthly"
-                ? "price_1Nn4FIIkJrKrc9JwwJLnzruw"
-                : "price_1Nn4FIIkJrKrc9JwAfpAWwYp",
+                ? "price_1Nn4GWIkJrKrc9Jwm5V62Jo3"
+                : "price_1Nn4GWIkJrKrc9JwdAwumyfz",
+            //   price:
+            //     item === "monthly"
+            //       ? "price_1Nn4FIIkJrKrc9JwwJLnzruw"
+            //       : "price_1Nn4FIIkJrKrc9JwAfpAWwYp",
             quantity: 1,
           },
         ],
