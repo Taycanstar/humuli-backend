@@ -23,7 +23,8 @@ interface StripeSession {
 
 export const payController = {
   createCheckoutSession: async (req: Request, res: Response) => {
-    const userId = req.body.userId; // Assume userId is sent in the request body
+    const userId = req.body.userId;
+    const item = req.body.item;
     console.log("createCheckoutSession called with body:", req.body);
     if (!userId) {
       res.status(400).send("User ID is required");
@@ -36,7 +37,14 @@ export const payController = {
         line_items: [
           {
             // Reference the Price ID from your Stripe Dashboard
-            price: "price_1Nn4FIIkJrKrc9JwAfpAWwYp",
+            // price:
+            //   item === "monthly"
+            //     ? "price_1Nn4GWIkJrKrc9Jwm5V62Jo3"
+            //     : "price_1Nn4GWIkJrKrc9JwdAwumyfz",
+            price:
+              item === "monthly"
+                ? "price_1Nn4FIIkJrKrc9JwwJLnzruw"
+                : "price_1Nn4FIIkJrKrc9JwAfpAWwYp",
             quantity: 1,
           },
         ],
