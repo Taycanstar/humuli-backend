@@ -25,5 +25,6 @@ router.put(
   userController.changeProfilePassword
 );
 router.put("/cancel-subscription/:id", userController.cancelSubscription);
+router.delete("/delete-user/:id", userController.deleteUser);
 
 export default router;

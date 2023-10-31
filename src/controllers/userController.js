@@ -555,4 +555,19 @@ exports.userController = {
             res.status(500).send({ message: "Failed to cancel subscription" });
         }
     }),
+    deleteUser: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        const { id } = req.params; // Assuming the ID is passed as a URL parameter
+        try {
+            const user = yield User_1.default.findByIdAndDelete(id);
+            if (!user) {
+                return res.status(404).json({ message: "User not found" });
+            }
+            // Optionally, you can also delete the user's related data if necessary
+            res.status(200).json({ message: "User deleted successfully" });
+        }
+        catch (error) {
+            console.error("Error during user deletion:", error);
+            res.status(500).send({ message: "Failed to delete user" });
+        }
+    }),
 };

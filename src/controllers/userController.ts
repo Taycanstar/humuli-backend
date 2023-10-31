@@ -698,4 +698,21 @@ export const userController = {
       res.status(500).send({ message: "Failed to cancel subscription" });
     }
   },
+  deleteUser: async (req: Request, res: Response) => {
+    const { id } = req.params; // Assuming the ID is passed as a URL parameter
+
+    try {
+      const user = await User.findByIdAndDelete(id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Optionally, you can also delete the user's related data if necessary
+
+      res.status(200).json({ message: "User deleted successfully" });
+    } catch (error) {
+      console.error("Error during user deletion:", error);
+      res.status(500).send({ message: "Failed to delete user" });
+    }
+  },
 };
