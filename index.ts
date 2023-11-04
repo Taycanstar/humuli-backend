@@ -87,6 +87,55 @@ wss.on("connection", (ws, req) => {
   }
 });
 
+// This is a server-side pseudo-code example
+
+// This would be set up in your server code
+app.post(
+  "/catwebhook",
+  express.json({ type: "application/json" }),
+  async (req, res) => {
+    const event = req.body;
+
+    // You can verify the data is from RevenueCat if necessary, by checking a shared secret or signature
+
+    try {
+      // Handle the different types of events
+      if (event.event_type === "INITIAL_PURCHASE") {
+        // A user has started a new subscription
+        const userId = event.subscriber.attributes.subscriber_user_id; // Retrieve this based on how you've set up your identifiers
+        const userSubscriptionStatus = "plus"; // This is an example, set the appropriate status based on the event details
+
+        // Update the user's subscription status in your database
+        const user = await User.findByIdAndUpdate(
+          userId,
+          { subscription: userSubscriptionStatus },
+          { new: true }
+        );
+
+        // Additional handling, such as notifying the user (if necessary)
+
+        // Respond to RevenueCat to acknowledge receipt of the webhook
+        res.status(200).send("Received");
+      } else if (event.event_type === "RENEWAL") {
+        // A user's subscription has renewed
+        // Similar handling as above
+      } else if (event.event_type === "CANCELLATION") {
+        const userId = event.subscriber.attributes.subscriber_user_id;
+        // A user has cancelled their subscription
+        const user = await User.findByIdAndUpdate(
+          userId,
+          { subscription: "standard" },
+          { new: true }
+        );
+        // Similar handling as above, possibly setting the userSubscriptionStatus to 'standard' or similar
+      }
+    } catch (error) {
+      console.error("Error handling RevenueCat webhook:", error);
+      res.status(500).send("Internal Server Error");
+    }
+  }
+);
+
 app.post(
   "/webhook",
   express.json({ type: "application/json" }),
