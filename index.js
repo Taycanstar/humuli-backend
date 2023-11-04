@@ -86,32 +86,67 @@ wss.on("connection", (ws, req) => {
     }
 });
 // This is a server-side pseudo-code example
-// This would be set up in your server code
 app.post("/catwebhook", express_1.default.json({ type: "application/json" }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const event = req.body;
-    // You can verify the data is from RevenueCat if necessary, by checking a shared secret or signature
+    // Assume 'User' is your user model and has a method 'findByIdAndUpdate'
+    // Assume 'subscriptionStatus' is a property on your user model that indicates the subscription level
     try {
-        // Handle the different types of events
-        if (event.event_type === "INITIAL_PURCHASE") {
-            // A user has started a new subscription
-            const userId = event.subscriber.attributes.subscriber_user_id; // Retrieve this based on how you've set up your identifiers
-            const userSubscriptionStatus = "plus"; // This is an example, set the appropriate status based on the event details
-            // Update the user's subscription status in your database
-            const user = yield User_1.default.findByIdAndUpdate(userId, { subscription: userSubscriptionStatus }, { new: true });
-            // Additional handling, such as notifying the user (if necessary)
-            // Respond to RevenueCat to acknowledge receipt of the webhook
-            res.status(200).send("Received");
+        switch (event.event.type) {
+            case "INITIAL_PURCHASE":
+                yield User_1.default.findByIdAndUpdate(event.event.app_user_id, {
+                    subscription: "plus",
+                });
+                break;
+            case "RENEWAL":
+                // Update user to active subscription
+                yield User_1.default.findByIdAndUpdate(event.event.app_user_id, {
+                    subscription: "plus",
+                });
+                break;
+            case "NON_RENEWING_PURCHASE":
+                // Handle one-time purchase
+                break;
+            case "CANCELLATION":
+                // Update user to reflect the cancellation
+                yield User_1.default.findByIdAndUpdate(event.event.app_user_id, {
+                    subscription: "standard",
+                });
+                break;
+            case "PRODUCT_CHANGE":
+                // Update user to reflect their new subscription product
+                break;
+            case "UNCANCELLATION":
+                // Handle reactivated subscription
+                yield User_1.default.findByIdAndUpdate(event.event.app_user_id, {
+                    subscription: "plus",
+                });
+                break;
+            case "BILLING_ISSUE":
+                // Update user to reflect billing issue (e.g., payment failed)
+                yield User_1.default.findByIdAndUpdate(event.event.app_user_id, {
+                    subscription: "standard",
+                });
+                break;
+            case "SUBSCRIBER_ALIAS":
+                // Update the user record if aliases are used in your system
+                break;
+            case "PAUSE":
+                // Handle subscription pause
+                break;
+            case "EXPIRATION":
+                // Update user to reflect expired subscription
+                yield User_1.default.findByIdAndUpdate(event.event.app_user_id, {
+                    subscription: "standard",
+                });
+                break;
+            case "OFFER_REDEEMED":
+                // Handle redemption of an offer code
+                break;
+            default:
+                console.log("Unhandled event type:", event.event.type);
+                break;
         }
-        else if (event.event_type === "RENEWAL") {
-            // A user's subscription has renewed
-            // Similar handling as above
-        }
-        else if (event.event_type === "CANCELLATION") {
-            const userId = event.subscriber.attributes.subscriber_user_id;
-            // A user has cancelled their subscription
-            const user = yield User_1.default.findByIdAndUpdate(userId, { subscription: "standard" }, { new: true });
-            // Similar handling as above, possibly setting the userSubscriptionStatus to 'standard' or similar
-        }
+        res.status(200).send("Received");
     }
     catch (error) {
         console.error("Error handling RevenueCat webhook:", error);
