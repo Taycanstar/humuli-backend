@@ -26,5 +26,6 @@ router.put(
 );
 router.put("/cancel-subscription/:id", userController.cancelSubscription);
 router.delete("/delete-user/:id", userController.deleteUser);
+router.post("/remote-start", userController.remoteStart);
 
 export default router;

@@ -83,11 +83,12 @@ const AnalyticsSchema = new mongoose_1.Schema({
     mostFrequentTask: String,
 });
 const userSchema = new mongoose_1.Schema({
+    deviceId: { type: String, unique: true },
     firstName: { type: String },
     lastName: { type: String },
     organizationName: { type: String },
-    email: { type: String, required: true },
-    password: { type: String, required: true },
+    email: { type: String },
+    password: { type: String },
     gender: { type: String },
     phoneNumber: { type: String },
     birthday: { type: String },

@@ -153,22 +153,12 @@ export const userController = {
         expiresIn: "3650d",
       });
 
-      // const refreshToken = jwt.sign(
-      //   { _id: user._id },
-      //   process.env.REFRESH_SECRET as string,
-      //   {
-      //     expiresIn: "365d",
-      //   }
-      // );
-
-      // Limit the number of refresh tokens
       if (
         user.refreshTokens &&
         user.refreshTokens.length >= MAX_REFRESH_TOKENS
       ) {
         user.refreshTokens.shift(); // Remove the oldest token
       }
-      // user.refreshTokens?.push(refreshToken);
 
       await user.save();
 
@@ -713,6 +703,26 @@ export const userController = {
     } catch (error) {
       console.error("Error during user deletion:", error);
       res.status(500).send({ message: "Failed to delete user" });
+    }
+  },
+
+  remoteStart: async (req: Request, res: Response) => {
+    const { deviceId } = req.body;
+
+    try {
+      let user = await User.findOne({ deviceId });
+
+      if (!user) {
+        // Create a new user if one doesn't exist
+        user = new User({ deviceId });
+        await user.save();
+      }
+
+      // Proceed with user's data - user is either found or newly created
+      res.status(200).json({ message: "User logged in successfully", user });
+    } catch (error) {
+      console.error("Error during signup/login:", error);
+      res.status(500).send({ message: "Failed to process request" });
     }
   },
 };

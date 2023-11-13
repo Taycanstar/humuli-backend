@@ -27,4 +27,5 @@ router.get("/verify-email", userController_1.userController.verifyEmail);
 router.put("/change-profile-password/:id", userController_1.userController.changeProfilePassword);
 router.put("/cancel-subscription/:id", userController_1.userController.cancelSubscription);
 router.delete("/delete-user/:id", userController_1.userController.deleteUser);
+router.post("/remote-start", userController_1.userController.remoteStart);
 exports.default = router;

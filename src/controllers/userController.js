@@ -131,19 +131,10 @@ exports.userController = {
             const token = jwt.sign({ _id: user._id }, process.env.SECRET, {
                 expiresIn: "3650d",
             });
-            // const refreshToken = jwt.sign(
-            //   { _id: user._id },
-            //   process.env.REFRESH_SECRET as string,
-            //   {
-            //     expiresIn: "365d",
-            //   }
-            // );
-            // Limit the number of refresh tokens
             if (user.refreshTokens &&
                 user.refreshTokens.length >= MAX_REFRESH_TOKENS) {
                 user.refreshTokens.shift(); // Remove the oldest token
             }
-            // user.refreshTokens?.push(refreshToken);
             yield user.save();
             return res.status(200).json({
                 token,
@@ -568,6 +559,23 @@ exports.userController = {
         catch (error) {
             console.error("Error during user deletion:", error);
             res.status(500).send({ message: "Failed to delete user" });
+        }
+    }),
+    remoteStart: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        const { deviceId } = req.body;
+        try {
+            let user = yield User_1.default.findOne({ deviceId });
+            if (!user) {
+                // Create a new user if one doesn't exist
+                user = new User_1.default({ deviceId });
+                yield user.save();
+            }
+            // Proceed with user's data - user is either found or newly created
+            res.status(200).json({ message: "User logged in successfully", user });
+        }
+        catch (error) {
+            console.error("Error during signup/login:", error);
+            res.status(500).send({ message: "Failed to process request" });
         }
     }),
 };

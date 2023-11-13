@@ -98,15 +98,17 @@ interface IUser extends Document {
   _id?: Types.ObjectId;
   refreshTokens?: string[];
   createdAt?: Date;
+  deviceId?: string;
 }
 
 const userSchema = new Schema<IUser>(
   {
+    deviceId: { type: String, unique: true },
     firstName: { type: String },
     lastName: { type: String },
     organizationName: { type: String },
-    email: { type: String, required: true },
-    password: { type: String, required: true },
+    email: { type: String },
+    password: { type: String },
     gender: { type: String },
     phoneNumber: { type: String },
     birthday: { type: String },
