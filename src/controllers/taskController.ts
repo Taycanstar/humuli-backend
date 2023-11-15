@@ -13,14 +13,15 @@ dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
 export const taskController = {
   newTask: async (req: Request, res: Response) => {
-    const userId = (req?.user as IUser)?._id;
+    // const userId = (req?.user as IUser)?._id;
+    const userId = req.body.deviceId;
 
     // Get task details from the request
     const { name, goal, color } = req.body;
 
     try {
       // Find the user
-      let user = await User.findById(userId);
+      let user = await User.findOne({ deviceId: userId });
 
       if (!user || !user.maxtickerData)
         return res.status(400).json({ message: "User or user data not found" });
@@ -53,10 +54,11 @@ export const taskController = {
     }
   },
   getAllTasks: async (req: Request, res: Response) => {
-    const userId = (req?.user as IUser)?._id;
-
+    // const userId = (req?.user as IUser)?._id;
+    const userId = req.params.id;
     try {
-      const user = await User.findById(userId);
+      // const user = await User.findById(userId);
+      let user = await User.findOne({ deviceId: userId });
 
       if (!user || !user.maxtickerData)
         return res.status(400).json({ message: "User or user data not found" });
@@ -67,12 +69,15 @@ export const taskController = {
       return res.status(500).json({ message: "Internal server error" });
     }
   },
+
   updateTask: async (req: Request, res: Response) => {
-    const userId = (req?.user as IUser)?._id;
+    // const userId = (req?.user as IUser)?._id;
+    const userId = req.body.deviceId;
     const taskId = req.params.id;
 
     try {
-      const user = await User.findById(userId);
+      // const user = await User.findById(userId);
+      let user = await User.findOne({ deviceId: userId });
 
       if (!user || !user.maxtickerData)
         return res.status(400).json({ message: "User or user data not found" });
@@ -99,11 +104,13 @@ export const taskController = {
     }
   },
   deleteTask: async (req: Request, res: Response) => {
-    const userId = (req?.user as IUser)?._id;
+    // const userId = (req?.user as IUser)?._id;
     const taskId = req.params.id; // Assuming you pass task ID in the URL
-
+    // const deviceId = req.body.deviceId;
+    const userId = req.body.deviceId;
     try {
-      const user = await User.findById(userId);
+      // const user = await User.findById(userId);
+      let user = await User.findOne({ deviceId: userId });
       if (!user || !user.maxtickerData)
         return res.status(400).json({ message: "User or user data not found" });
 
@@ -124,11 +131,13 @@ export const taskController = {
     }
   },
   getSingleTask: async (req: Request, res: Response) => {
-    const userId = (req.user as IUser)._id;
+    // const userId = (req.user as IUser)._id;
+    const userId = req.body.deviceId;
     const taskId = req.params.taskId;
 
     try {
-      const user = await User.findById(userId);
+      // const user = await User.findById(userId);
+      let user = await User.findOne({ deviceId: userId });
       if (!user || !user.maxtickerData)
         return res.status(400).json({ message: "User or user data not found" });
 
@@ -149,7 +158,9 @@ export const taskController = {
 
   updateStreak: async (taskId: string, userId: string) => {
     try {
-      const user = await User.findById(userId);
+      // const user = await User.findById(userId);
+      let user = await User.findOne({ deviceId: userId });
+
       if (!user || !user.maxtickerData) return false;
 
       const taskIndex = user.maxtickerData.tasks.findIndex(
@@ -185,7 +196,8 @@ export const taskController = {
     }
   },
   endSession: async (req: Request, res: Response) => {
-    const userId = (req?.user as IUser)?._id;
+    // const userId = (req?.user as IUser)?._id;
+    const userId = req.body.deviceId;
     console.log(userId, "id");
 
     if (!userId) {
@@ -205,7 +217,8 @@ export const taskController = {
     console.log(sessionData, "data");
 
     try {
-      const user = await User.findById(userId.toString());
+      // const user = await User.findById(userId.toString());
+      let user = await User.findOne({ deviceId: userId });
       if (!user || !user.maxtickerData) {
         return res.status(400).json({ message: "User or user data not found" });
       }

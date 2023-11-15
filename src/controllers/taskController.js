@@ -21,13 +21,14 @@ const path_1 = __importDefault(require("path"));
 dotenv_1.default.config({ path: path_1.default.resolve(__dirname, "../../.env") });
 exports.taskController = {
     newTask: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a, _b, _c;
-        const userId = (_a = req === null || req === void 0 ? void 0 : req.user) === null || _a === void 0 ? void 0 : _a._id;
+        var _a, _b;
+        // const userId = (req?.user as IUser)?._id;
+        const userId = req.body.deviceId;
         // Get task details from the request
         const { name, goal, color } = req.body;
         try {
             // Find the user
-            let user = yield User_1.default.findById(userId);
+            let user = yield User_1.default.findOne({ deviceId: userId });
             if (!user || !user.maxtickerData)
                 return res.status(400).json({ message: "User or user data not found" });
             // Create new task
@@ -38,13 +39,13 @@ exports.taskController = {
                 sessions: [], // Initialize sessions as empty
             };
             // Validate tasks array limit
-            if (((_b = user === null || user === void 0 ? void 0 : user.maxtickerData) === null || _b === void 0 ? void 0 : _b.tasks) && user.maxtickerData.tasks.length >= 4) {
+            if (((_a = user === null || user === void 0 ? void 0 : user.maxtickerData) === null || _a === void 0 ? void 0 : _a.tasks) && user.maxtickerData.tasks.length >= 4) {
                 return res.status(400).json({
                     message: "Subscribe to Maxticker Plus to add unlimited stopwatches",
                 });
             }
             // Add new task to the user's tasks
-            (_c = user === null || user === void 0 ? void 0 : user.maxtickerData) === null || _c === void 0 ? void 0 : _c.tasks.push(newTask);
+            (_b = user === null || user === void 0 ? void 0 : user.maxtickerData) === null || _b === void 0 ? void 0 : _b.tasks.push(newTask);
             // Save the updated user
             yield user.save();
             return res.status(200).json({ message: "Task added successfully" });
@@ -55,13 +56,15 @@ exports.taskController = {
         }
     }),
     getAllTasks: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-        var _d, _e;
-        const userId = (_d = req === null || req === void 0 ? void 0 : req.user) === null || _d === void 0 ? void 0 : _d._id;
+        var _c;
+        // const userId = (req?.user as IUser)?._id;
+        const userId = req.params.id;
         try {
-            const user = yield User_1.default.findById(userId);
+            // const user = await User.findById(userId);
+            let user = yield User_1.default.findOne({ deviceId: userId });
             if (!user || !user.maxtickerData)
                 return res.status(400).json({ message: "User or user data not found" });
-            return res.status(200).json((_e = user === null || user === void 0 ? void 0 : user.maxtickerData) === null || _e === void 0 ? void 0 : _e.tasks);
+            return res.status(200).json((_c = user === null || user === void 0 ? void 0 : user.maxtickerData) === null || _c === void 0 ? void 0 : _c.tasks);
         }
         catch (error) {
             console.log(error);
@@ -69,14 +72,16 @@ exports.taskController = {
         }
     }),
     updateTask: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-        var _f, _g;
-        const userId = (_f = req === null || req === void 0 ? void 0 : req.user) === null || _f === void 0 ? void 0 : _f._id;
+        var _d;
+        // const userId = (req?.user as IUser)?._id;
+        const userId = req.body.deviceId;
         const taskId = req.params.id;
         try {
-            const user = yield User_1.default.findById(userId);
+            // const user = await User.findById(userId);
+            let user = yield User_1.default.findOne({ deviceId: userId });
             if (!user || !user.maxtickerData)
                 return res.status(400).json({ message: "User or user data not found" });
-            const taskIndex = (_g = user === null || user === void 0 ? void 0 : user.maxtickerData) === null || _g === void 0 ? void 0 : _g.tasks.findIndex((t) => t._id == taskId);
+            const taskIndex = (_d = user === null || user === void 0 ? void 0 : user.maxtickerData) === null || _d === void 0 ? void 0 : _d.tasks.findIndex((t) => t._id == taskId);
             if (taskIndex === -1)
                 return res.status(400).json({ message: "Task not found" });
             // Update the task
@@ -91,11 +96,13 @@ exports.taskController = {
         }
     }),
     deleteTask: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-        var _h;
-        const userId = (_h = req === null || req === void 0 ? void 0 : req.user) === null || _h === void 0 ? void 0 : _h._id;
+        // const userId = (req?.user as IUser)?._id;
         const taskId = req.params.id; // Assuming you pass task ID in the URL
+        // const deviceId = req.body.deviceId;
+        const userId = req.body.deviceId;
         try {
-            const user = yield User_1.default.findById(userId);
+            // const user = await User.findById(userId);
+            let user = yield User_1.default.findOne({ deviceId: userId });
             if (!user || !user.maxtickerData)
                 return res.status(400).json({ message: "User or user data not found" });
             //   user.maxtickerData.tasks = user.maxtickerData.tasks.filter(
@@ -112,10 +119,12 @@ exports.taskController = {
         }
     }),
     getSingleTask: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-        const userId = req.user._id;
+        // const userId = (req.user as IUser)._id;
+        const userId = req.body.deviceId;
         const taskId = req.params.taskId;
         try {
-            const user = yield User_1.default.findById(userId);
+            // const user = await User.findById(userId);
+            let user = yield User_1.default.findOne({ deviceId: userId });
             if (!user || !user.maxtickerData)
                 return res.status(400).json({ message: "User or user data not found" });
             const task = user.maxtickerData.tasks.find((t) => t._id.toString() === taskId);
@@ -131,7 +140,8 @@ exports.taskController = {
     // ... [Other session-related methods]
     updateStreak: (taskId, userId) => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            const user = yield User_1.default.findById(userId);
+            // const user = await User.findById(userId);
+            let user = yield User_1.default.findOne({ deviceId: userId });
             if (!user || !user.maxtickerData)
                 return false;
             const taskIndex = user.maxtickerData.tasks.findIndex((t) => t._id == taskId);
@@ -161,8 +171,8 @@ exports.taskController = {
         }
     }),
     endSession: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-        var _j;
-        const userId = (_j = req === null || req === void 0 ? void 0 : req.user) === null || _j === void 0 ? void 0 : _j._id;
+        // const userId = (req?.user as IUser)?._id;
+        const userId = req.body.deviceId;
         console.log(userId, "id");
         if (!userId) {
             return res.status(400).json({ message: "User ID not found" });
@@ -176,7 +186,8 @@ exports.taskController = {
         const sessionData = req.body;
         console.log(sessionData, "data");
         try {
-            const user = yield User_1.default.findById(userId.toString());
+            // const user = await User.findById(userId.toString());
+            let user = yield User_1.default.findOne({ deviceId: userId });
             if (!user || !user.maxtickerData) {
                 return res.status(400).json({ message: "User or user data not found" });
             }
