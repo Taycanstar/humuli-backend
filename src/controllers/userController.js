@@ -567,7 +567,7 @@ exports.userController = {
             let user = yield User_1.default.findOne({ deviceId });
             if (!user) {
                 // Create a new user if one doesn't exist
-                user = new User_1.default({ deviceId });
+                user = new User_1.default({ deviceId, subscription: "standard" });
                 yield user.save();
             }
             // Proceed with user's data - user is either found or newly created

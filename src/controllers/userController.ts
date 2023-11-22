@@ -714,7 +714,7 @@ export const userController = {
 
       if (!user) {
         // Create a new user if one doesn't exist
-        user = new User({ deviceId });
+        user = new User({ deviceId, subscription: "standard" });
         await user.save();
       }
 
