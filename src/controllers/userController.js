@@ -423,7 +423,8 @@ exports.userController = {
         const userId = req.params.id;
         console.log("Fetching subscription for user ID:", userId);
         try {
-            let user = yield User_1.default.findById(userId);
+            // let user = await User.findById(userId);
+            let user = yield User_1.default.findOne({ deviceId: userId });
             console.log("User found:", user);
             if (!user || !user.subscription)
                 return res.status(400).json({ message: "User or user data not found" });

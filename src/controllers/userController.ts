@@ -516,7 +516,8 @@ export const userController = {
     console.log("Fetching subscription for user ID:", userId);
 
     try {
-      let user = await User.findById(userId);
+      // let user = await User.findById(userId);
+      let user = await User.findOne({ deviceId: userId });
       console.log("User found:", user);
 
       if (!user || !user.subscription)
@@ -563,6 +564,7 @@ export const userController = {
     try {
       // Check if the new email is already in use
       const existingUser = await User.findOne({ email });
+
       if (existingUser) {
         return res.status(400).json({ message: "Email already in use" });
       }
