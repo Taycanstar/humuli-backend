@@ -13,38 +13,30 @@ dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
 export const taskController = {
   newTask: async (req: Request, res: Response) => {
-    // const userId = (req?.user as IUser)?._id;
     const userId = req.body.deviceId;
-
-    // Get task details from the request
     const { name, goal, color } = req.body;
 
     try {
-      // Find the user
       let user = await User.findOne({ deviceId: userId });
 
       if (!user || !user.maxtickerData)
         return res.status(400).json({ message: "User or user data not found" });
 
-      // Create new task
       const newTask = {
         name,
         goal,
         color,
-        sessions: [], // Initialize sessions as empty
+        sessions: [],
       };
 
-      // Validate tasks array limit
-      if (user?.maxtickerData?.tasks && user.maxtickerData.tasks.length >= 4) {
-        return res.status(400).json({
-          message: "Subscribe to Maxticker Plus to add unlimited stopwatches",
-        });
-      }
+      // // Check user's subscription status
+      // if (user.subscription !== 'plus' && user.maxtickerData.tasks.length >= 4) {
+      //   return res.status(400).json({
+      //     message: "Subscribe to Maxticker Plus to add unlimited stopwatches",
+      //   });
+      // }
 
-      // Add new task to the user's tasks
-      user?.maxtickerData?.tasks.push(newTask);
-
-      // Save the updated user
+      user.maxtickerData.tasks.push(newTask);
       await user.save();
 
       return res.status(200).json({ message: "Task added successfully" });
