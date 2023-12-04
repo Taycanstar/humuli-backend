@@ -21,32 +21,25 @@ const path_1 = __importDefault(require("path"));
 dotenv_1.default.config({ path: path_1.default.resolve(__dirname, "../../.env") });
 exports.taskController = {
     newTask: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a, _b;
-        // const userId = (req?.user as IUser)?._id;
         const userId = req.body.deviceId;
-        // Get task details from the request
         const { name, goal, color } = req.body;
         try {
-            // Find the user
             let user = yield User_1.default.findOne({ deviceId: userId });
             if (!user || !user.maxtickerData)
                 return res.status(400).json({ message: "User or user data not found" });
-            // Create new task
             const newTask = {
                 name,
                 goal,
                 color,
-                sessions: [], // Initialize sessions as empty
+                sessions: [],
             };
-            // Validate tasks array limit
-            if (((_a = user === null || user === void 0 ? void 0 : user.maxtickerData) === null || _a === void 0 ? void 0 : _a.tasks) && user.maxtickerData.tasks.length >= 4) {
-                return res.status(400).json({
-                    message: "Subscribe to Maxticker Plus to add unlimited stopwatches",
-                });
-            }
-            // Add new task to the user's tasks
-            (_b = user === null || user === void 0 ? void 0 : user.maxtickerData) === null || _b === void 0 ? void 0 : _b.tasks.push(newTask);
-            // Save the updated user
+            // // Check user's subscription status
+            // if (user.subscription !== 'plus' && user.maxtickerData.tasks.length >= 4) {
+            //   return res.status(400).json({
+            //     message: "Subscribe to Maxticker Plus to add unlimited stopwatches",
+            //   });
+            // }
+            user.maxtickerData.tasks.push(newTask);
             yield user.save();
             return res.status(200).json({ message: "Task added successfully" });
         }
@@ -56,7 +49,7 @@ exports.taskController = {
         }
     }),
     getAllTasks: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-        var _c;
+        var _a;
         // const userId = (req?.user as IUser)?._id;
         const userId = req.params.id;
         try {
@@ -64,7 +57,7 @@ exports.taskController = {
             let user = yield User_1.default.findOne({ deviceId: userId });
             if (!user || !user.maxtickerData)
                 return res.status(400).json({ message: "User or user data not found" });
-            return res.status(200).json((_c = user === null || user === void 0 ? void 0 : user.maxtickerData) === null || _c === void 0 ? void 0 : _c.tasks);
+            return res.status(200).json((_a = user === null || user === void 0 ? void 0 : user.maxtickerData) === null || _a === void 0 ? void 0 : _a.tasks);
         }
         catch (error) {
             console.log(error);
@@ -72,7 +65,7 @@ exports.taskController = {
         }
     }),
     updateTask: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-        var _d;
+        var _b;
         // const userId = (req?.user as IUser)?._id;
         const userId = req.body.deviceId;
         const taskId = req.params.id;
@@ -81,7 +74,7 @@ exports.taskController = {
             let user = yield User_1.default.findOne({ deviceId: userId });
             if (!user || !user.maxtickerData)
                 return res.status(400).json({ message: "User or user data not found" });
-            const taskIndex = (_d = user === null || user === void 0 ? void 0 : user.maxtickerData) === null || _d === void 0 ? void 0 : _d.tasks.findIndex((t) => t._id == taskId);
+            const taskIndex = (_b = user === null || user === void 0 ? void 0 : user.maxtickerData) === null || _b === void 0 ? void 0 : _b.tasks.findIndex((t) => t._id == taskId);
             if (taskIndex === -1)
                 return res.status(400).json({ message: "Task not found" });
             // Update the task
